@@ -61,10 +61,10 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}/latest', inputs.gcpProject, inputs.imageName) || '' }}
-            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}/stage', inputs.gcpProject, inputs.imageName) || '' }}
+            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:latest', inputs.gcpProject, inputs.imageName) || '' }}
+            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcpProject, inputs.imageName) || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}/prod', inputs.gcpProject, inputs.imageName) || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcpProject, inputs.imageName) || '' }}
           cache-from: type=registry,ref=eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:latest
           cache-to: type=inline
           ssh: default
