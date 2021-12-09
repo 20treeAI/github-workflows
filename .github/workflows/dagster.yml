@@ -15,17 +15,16 @@ on:
         type: string
       clusterName:
         required: true
-        type: string  
-      # isProd:
-      #   required: true
-      #   type: boolean
+        type: string
     secrets:
       SSH_KEY:
+        required: true
+      GCR_RW_SERVICEACCOUNT_KEY:
         required: true
 
 jobs:
   docker:
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
