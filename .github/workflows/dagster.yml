@@ -56,6 +56,8 @@ jobs:
         run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:${GITHUB_REF#refs/tags/}
       - name: Build and push
         uses: docker/build-push-action@v2
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
@@ -66,7 +68,7 @@ jobs:
             ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}/prod', inputs.gcpProject, inputs.imageName) || '' }}
           cache-from: type=registry,ref=eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:latest
           cache-to: type=inline
-          ssh: default=/tmp/ssh_agent.sock
+          ssh: default
       - if: ${{ github.event_name == 'push' }}
         uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
