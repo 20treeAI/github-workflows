@@ -51,18 +51,18 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ github.ref == 'refs/heads/${inputs.branch}' && 'eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:latest' || '' }}
-            ${{ github.ref == 'refs/heads/${inputs.branch}' && 'eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:stage' || '' }}
+            ${{ github.ref == 'refs/heads/${{ inputs.branch }}' && 'eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:latest' || '' }}
+            ${{ github.ref == 'refs/heads/${{ inputs.branch }}' && 'eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:stage' || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/') && 'eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:prod' || '' }}
-          cache-from: type=registry,ref=eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:latest
+            ${{ startsWith(github.ref, 'refs/tags/') && 'eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:prod' || '' }}
+          cache-from: type=registry,ref=eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:latest
           cache-to: type=inline
       - if: ${{ github.event_name == 'push' }}
         uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && '${inputs.clusterName}' || 'stage-${inputs.clusterName}' }}
+          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.clusterName || 'stage-${{ inputs.clusterName }}' }}
           location: europe-west4
       - if: ${{ github.event_name == 'push' }}
         name: Deploy to cluster
         run: |
-          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${inputs.imageName}
+          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.imageName }}
