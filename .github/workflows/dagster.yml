@@ -19,9 +19,9 @@ on:
       # isProd:
       #   required: true
       #   type: boolean
-    # secrets:
-    #   GCR_RW_SERVICEACCOUNT_KEY:
-    #     required: true
+    secrets:
+      SSH_KEY:
+        required: true
 
 jobs:
   docker:
@@ -29,6 +29,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup SSH Keys and known_hosts
+        shell: bash -l {0}
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - if: ${{ github.event_name == 'push' }}
@@ -48,9 +57,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-
-
-        
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
