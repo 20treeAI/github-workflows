@@ -35,7 +35,7 @@ jobs:
         name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ gcpProject }}
+          project_id: ${{ inputs.gcpProject }}
           service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
           export_default_credentials: true
       - if: ${{ github.event_name == 'push' }}
@@ -44,25 +44,25 @@ jobs:
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
         id: get_tag
         name: Get tag
-        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${gcpProject}/${imageName}:${GITHUB_REF#refs/tags/}
+        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:${GITHUB_REF#refs/tags/}
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ github.ref == 'refs/heads/${branch}' && 'eu.gcr.io/${gcpProject}/${imageName}:latest' || '' }}
-            ${{ github.ref == 'refs/heads/${branch}' && 'eu.gcr.io/${gcpProject}/${imageName}:stage' || '' }}
+            ${{ github.ref == 'refs/heads/${inputs.branch}' && 'eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:latest' || '' }}
+            ${{ github.ref == 'refs/heads/${inputs.branch}' && 'eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:stage' || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/') && 'eu.gcr.io/${gcpProject}/${imageName}:prod' || '' }}
-          cache-from: type=registry,ref=eu.gcr.io/${gcpProject}/${imageName}:latest
+            ${{ startsWith(github.ref, 'refs/tags/') && 'eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:prod' || '' }}
+          cache-from: type=registry,ref=eu.gcr.io/${inputs.gcpProject}/${inputs.imageName}:latest
           cache-to: type=inline
       - if: ${{ github.event_name == 'push' }}
         uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && '${clusterName}' || 'stage-${clusterName}' }}
+          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && '${inputs.clusterName}' || 'stage-${inputs.clusterName}' }}
           location: europe-west4
       - if: ${{ github.event_name == 'push' }}
         name: Deploy to cluster
         run: |
-          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${imageName}
+          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${inputs.imageName}
