@@ -1,0 +1,68 @@
+---
+name: Dagster workflow - build, push and deploy dagster workflow
+
+on:
+  workflow_call:
+    inputs:
+      imageName:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+      gcpProject:
+        required: true
+        type: string
+      clusterName:
+        required: true
+        type: string  
+      # isProd:
+      #   required: true
+      #   type: boolean
+    # secrets:
+    #   GCR_RW_SERVICEACCOUNT_KEY:
+    #     required: true
+
+jobs:
+  docker:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - if: ${{ github.event_name == 'push' }}
+        name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ gcpProject }}
+          service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+          export_default_credentials: true
+      - if: ${{ github.event_name == 'push' }}
+        name: Configure Docker
+        run: gcloud auth configure-docker
+      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        id: get_tag
+        name: Get tag
+        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${gcpProject}/${imageName}:${GITHUB_REF#refs/tags/}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ github.ref == 'refs/heads/${branch}' && 'eu.gcr.io/${gcpProject}/${imageName}:latest' || '' }}
+            ${{ github.ref == 'refs/heads/${branch}' && 'eu.gcr.io/${gcpProject}/${imageName}:stage' || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/') && 'eu.gcr.io/${gcpProject}/${imageName}:prod' || '' }}
+          cache-from: type=registry,ref=eu.gcr.io/${gcpProject}/${imageName}:latest
+          cache-to: type=inline
+      - if: ${{ github.event_name == 'push' }}
+        uses: google-github-actions/get-gke-credentials@v0.3.0
+        with:
+          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && '${clusterName}' || 'stage-${clusterName}' }}
+          location: europe-west4
+      - if: ${{ github.event_name == 'push' }}
+        name: Deploy to cluster
+        run: |
+          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${imageName}
