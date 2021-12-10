@@ -1,25 +1,32 @@
 ---
-name: Dagster workflow - build, push and deploy dagster workflow
+name: Dagster workflow - build, push and deploy a Dagster workflow to K8s
 
 on:
   workflow_call:
     inputs:
-      imageName:
+      image_name:
+        description: 'Docker image name'
         required: true
         type: string
       branch:
+        description: 'Git branch used for tagging incremental builds of the Docker image'
+        default: 'master'
+        required: false
+        type: string
+      gcp_project:
+        description: 'GCP project where GCR is located for storing built Docker images'
         required: true
         type: string
-      gcpProject:
-        required: true
-        type: string
-      clusterName:
+      cluster_name:
+        description: 'K8s cluster name on which Dagster workflow is deployed to'
         required: true
         type: string
     secrets:
       SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
         required: true
       GCR_RW_SERVICEACCOUNT_KEY:
+        description: 'GCR service account credentials to push/pull Docker images'
         required: true
 
 jobs:
@@ -43,7 +50,7 @@ jobs:
         name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
-          project_id: ${{ inputs.gcpProject }}
+          project_id: ${{ inputs.gcp_project }}
           service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
           export_default_credentials: true
       - if: ${{ github.event_name == 'push' }}
@@ -52,7 +59,7 @@ jobs:
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
         id: get_tag
         name: Get tag
-        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:${GITHUB_REF#refs/tags/}
+        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${GITHUB_REF#refs/tags/}
       - name: Build and push
         uses: docker/build-push-action@v2
         env:
@@ -61,19 +68,19 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:latest', inputs.gcpProject, inputs.imageName) || '' }}
-            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcpProject, inputs.imageName) || '' }}
+            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:latest', inputs.gcp_project, inputs.image_name) || '' }}
+            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcp_project, inputs.image_name) || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcpProject, inputs.imageName) || '' }}
-          cache-from: type=registry,ref=eu.gcr.io/${{ inputs.gcpProject }}/${{ inputs.imageName }}:latest
+            ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcp_project, inputs.image_name) || '' }}
+          cache-from: type=registry,ref=eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:latest
           cache-to: type=inline
           ssh: default
       - if: ${{ github.event_name == 'push' }}
         uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
-          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.clusterName || format('stage-{0}', inputs.clusterName) }}
+          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || format('stage-{0}', inputs.cluster_name) }}
           location: europe-west4
       - if: ${{ github.event_name == 'push' }}
         name: Deploy to cluster
         run: |
-          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.imageName }}
+          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
