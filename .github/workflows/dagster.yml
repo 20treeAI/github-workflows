@@ -140,7 +140,7 @@ jobs:
               serviceAccountName: stage-elm-dagster
             dagster-user-deployments:
               deployments:
-                - name: "dev"
+                - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
                   image:
                     repository: ${{ format('eu.gcr.io/{0}/{1}', inputs.gcp_project, inputs.image_name) }}
                     tag: ${{ format('pr-{0}', github.event.number) }}
