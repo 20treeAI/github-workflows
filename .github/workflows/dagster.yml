@@ -128,7 +128,7 @@ jobs:
           chart: 'dagster'
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: 'dagster'
-          chart_version: '0.14.12'
+          chart_version: '0.14.15'
           values: |
             dagsterDaemon:
               nodeSelector:
