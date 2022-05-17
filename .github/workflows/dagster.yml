@@ -172,7 +172,7 @@ jobs:
                 path: "/"
                 tls:
                   enabled: true
-                  secretName: "${{ format('pr-{0}', github.event.number) }}-ssl-secret"
+                  secretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-ssl-secret"
             pipelineRun:
               env:
                 ELM_ENVIRONMENT: 'development'
