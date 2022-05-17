@@ -34,7 +34,7 @@ env:
 
 jobs:
   cleanup-pr:
-    if: github.event.action == 'closed'
+    if: github.event.action == 'closed' || ( github.event.action == 'unlabeled' && !contains(github.event.pull_request.labels.*.name, 'dev-env') )
     runs-on: ubuntu-latest
     steps:
       - name: Set up Cloud SDK
@@ -136,7 +136,7 @@ jobs:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
             global:
-              postgresqlSecretName: "${{ format('pr-{0}', github.event.number) }}-psql-secret"
+              postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
               serviceAccountName: ***REMOVED***
             dagster-user-deployments:
               deployments:
