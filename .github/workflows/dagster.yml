@@ -56,6 +56,10 @@ jobs:
           chart: 'dagster'
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: 'dagster'
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: dev-env-location
+          delete: true
 
   docker:
     if: github.event.action != 'closed'
@@ -177,6 +181,7 @@ jobs:
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          header: dev-env-location
           message: |
             :rocket: Release deployed to <https://${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.stage-elm.overstory.ai>
             The first deployment will take a couple of minutes. Sit tight
