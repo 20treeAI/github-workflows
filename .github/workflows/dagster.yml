@@ -121,14 +121,14 @@ jobs:
         run: echo ::set-output name=REPOSITORY_PY_LOCATION::$(find . -maxdepth 2 -name repository.py)
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
         name: Deploy dev environment
-        uses: glopezep/helm@v1.7.1 # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
+        uses: AndreaGiardini/helm@master # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
         with:
           helm: helm3
           repository: "https://dagster-io.github.io/helm"
           chart: 'dagster'
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: 'dagster'
-          chart_version: '0.14.15'
+          chartVersion: '0.14.15'
           values: |
             dagsterDaemon:
               nodeSelector:
