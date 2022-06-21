@@ -155,6 +155,8 @@ jobs:
                   port: 3030
                   nodeSelector:
                     cloud.google.com/gke-nodepool: core
+                  labels:
+                    dev-environment.overstory.io/deploysha: "${{ github.sha }}"
             ingress:
               enabled: true
               annotations:
