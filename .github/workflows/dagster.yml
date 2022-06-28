@@ -114,7 +114,7 @@ jobs:
         name: Deploy to cluster
         run: |
           kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
-          kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=5m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
+          kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
         id: find_repo_file
         name: Find repository.py file
