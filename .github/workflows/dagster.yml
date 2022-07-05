@@ -103,8 +103,7 @@ jobs:
         with:
           context: .
           load: true
-          tags: |
-            test-image
+          tags: test-image
           ssh: default
 
       - name: Find repository.py file
