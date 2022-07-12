@@ -119,6 +119,11 @@ jobs:
           chmod +x /tmp/grpc_health_probe
           for i in $(seq 1 10); do /tmp/grpc_health_probe -addr=localhost:8080 && s=0 && break || s=$? && sleep 2; done; (docker logs test_container && exit $s)
 
+      - uses: google-github-actions/get-gke-credentials@v0.3.0
+        with:
+          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || format('stage-{0}', inputs.cluster_name) }}
+          location: europe-west4
+
       - name: Push docker image
         uses: docker/build-push-action@v2
         with:
@@ -130,11 +135,6 @@ jobs:
             ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcp_project, inputs.image_name) || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcp_project, inputs.image_name) || '' }}
-
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || format('stage-{0}', inputs.cluster_name) }}
-          location: europe-west4
 
       - if: ${{ github.event_name == 'push' }}
         name: Deploy to cluster
