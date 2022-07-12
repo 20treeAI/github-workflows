@@ -67,6 +67,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Setup SSH Keys and known_hosts
         shell: bash -l {0}
         env:
@@ -76,24 +77,50 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           project_id: ${{ inputs.gcp_project }}
           service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
           export_default_credentials: true
+
       - name: Configure Docker
         run: gcloud auth configure-docker
+
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
         id: get_tag
         name: Get tag
         run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${GITHUB_REF#refs/tags/}
-      - name: Build and push
+
+      - name: Build docker image
         uses: docker/build-push-action@v2
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        with:
+          context: .
+          load: true
+          tags: test-image
+          ssh: default
+
+      - name: Find repository.py file
+        id: find_repo_file
+        run: echo ::set-output name=REPOSITORY_PY_LOCATION::$(find . -maxdepth 2 -name repository.py)
+
+      - name: Test docker image
+        run: |
+          docker run -p 8080:8080 -d --name test_container test-image \
+              dagster api grpc -h 0.0.0.0 -p 8080 --python-file "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
+          sleep 5
+          wget -O/tmp/grpc_health_probe -q https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.11/grpc_health_probe-linux-amd64
+          chmod +x /tmp/grpc_health_probe
+          /tmp/grpc_health_probe -addr=localhost:8080 || ( docker logs test_container && exit 1 )
+
+      - name: Push docker image
+        uses: docker/build-push-action@v2
         with:
           context: .
           push: true
@@ -103,22 +130,18 @@ jobs:
             ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcp_project, inputs.image_name) || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
             ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcp_project, inputs.image_name) || '' }}
-          cache-from: type=registry,ref=eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:latest
-          cache-to: type=inline
-          ssh: default
+
       - uses: google-github-actions/get-gke-credentials@v0.3.0
         with:
           cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || format('stage-{0}', inputs.cluster_name) }}
           location: europe-west4
+
       - if: ${{ github.event_name == 'push' }}
         name: Deploy to cluster
         run: |
           kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
           kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
-      - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
-        id: find_repo_file
-        name: Find repository.py file
-        run: echo ::set-output name=REPOSITORY_PY_LOCATION::$(find . -maxdepth 2 -name repository.py)
+
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
         name: Deploy dev environment
         uses: AndreaGiardini/helm@master # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
