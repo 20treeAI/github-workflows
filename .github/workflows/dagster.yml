@@ -203,6 +203,12 @@ jobs:
                 ***REMOVED***: 'development'
             serviceAccount:
               create: false
+            postgresql:
+              enabled: true
+              master:
+                nodeSelector:
+                  cloud.google.com/gke-nodepool: core
+
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
