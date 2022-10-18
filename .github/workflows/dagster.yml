@@ -206,6 +206,8 @@ jobs:
             postgresql:
               enabled: true
               master:
+                annotations:
+                  cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
                 nodeSelector:
                   cloud.google.com/gke-nodepool: core
 
