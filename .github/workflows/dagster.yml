@@ -121,6 +121,8 @@ jobs:
 
       - name: Push docker image
         uses: docker/build-push-action@v2
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
           context: .
           push: true
