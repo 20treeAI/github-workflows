@@ -165,6 +165,23 @@ jobs:
             dagit:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
+              livenessProbe:
+                httpGet:
+                  path: "/dagit_info"
+                  port: 80
+                periodSeconds: 20
+                timeoutSeconds: 3
+                successThreshold: 1
+                failureThreshold: 3
+              startupProbe:
+                enabled: true
+                httpGet:
+                  path: "/dagit_info"
+                  port: 80
+                periodSeconds: 20
+                timeoutSeconds: 3
+                successThreshold: 1
+                failureThreshold: 3
             global:
               postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
               serviceAccountName: ***REMOVED***
