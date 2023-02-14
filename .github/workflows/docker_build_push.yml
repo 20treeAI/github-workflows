@@ -25,9 +25,6 @@ on:
         description: 'GCR service account credentials to push/pull Docker images'
         required: true
 
-env:
-  AUTH_URL: auth.stage-elm.overstory.ai
-
 jobs:
   docker:
     if: github.event.action != 'closed'
