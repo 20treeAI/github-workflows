@@ -17,10 +17,6 @@ on:
         description: 'GCP project where GCR is located for storing built Docker images'
         required: true
         type: string
-      cluster_name:
-        description: 'K8s cluster name on which Dagster workflow is deployed to'
-        required: true
-        type: string
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
