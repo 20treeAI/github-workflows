@@ -71,10 +71,6 @@ jobs:
           tags: test-image
           ssh: default
 
-      - name: Find repository.py file
-        id: find_repo_file
-        run: echo ::set-output name=REPOSITORY_PY_LOCATION::$(find . -maxdepth 2 -name repository.py)
-
       - name: Push docker image
         uses: docker/build-push-action@v4.0.0
         env:
