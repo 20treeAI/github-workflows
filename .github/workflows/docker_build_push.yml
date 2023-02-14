@@ -1,0 +1,92 @@
+---
+name: docker workflow - build and push docker images to GCS
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      branch:
+        description: 'Git branch used for tagging incremental builds of the Docker image'
+        default: 'master'
+        required: false
+        type: string
+      gcp_project:
+        description: 'GCP project where GCR is located for storing built Docker images'
+        required: true
+        type: string
+    secrets:
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: true
+      GCR_RW_SERVICEACCOUNT_KEY:
+        description: 'GCR service account credentials to push/pull Docker images'
+        required: true
+
+jobs:
+  docker:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup SSH Keys and known_hosts
+        shell: bash -l {0}
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.4.1
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ inputs.gcp_project }}
+          service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+          export_default_credentials: true
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker
+
+      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        id: get_tag
+        name: Get tag
+        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${GITHUB_REF#refs/tags/}
+
+      - name: Build docker image
+        uses: docker/build-push-action@v4.0.0
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        with:
+          context: .
+          load: true
+          tags: test-image
+          ssh: default
+
+      - name: Find repository.py file
+        id: find_repo_file
+        run: echo ::set-output name=REPOSITORY_PY_LOCATION::$(find . -maxdepth 2 -name repository.py)
+
+      - name: Push docker image
+        uses: docker/build-push-action@v4.0.0
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        with:
+          context: .
+          push: true
+          ssh: default
+          tags: |
+            ${{ github.event_name == 'pull_request' && format('eu.gcr.io/{0}/{1}:pr-{2}', inputs.gcp_project, inputs.image_name, github.event.number) || '' }}
+            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:latest', inputs.gcp_project, inputs.image_name) || '' }}
+            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcp_project, inputs.image_name) || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcp_project, inputs.image_name) || '' }}
+          provenance: false # Image attestations not supported in GCR: https://github.com/docker/buildx/issues/1533
