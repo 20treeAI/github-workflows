@@ -80,6 +80,7 @@ jobs:
           push: true
           ssh: default
           tags: |
+            ${{ format('eu.gcr.io/{0}/{1}:{2}', inputs.gcp_project, inputs.image_name, github.sha) }}
             ${{ github.event_name == 'pull_request' && format('eu.gcr.io/{0}/{1}:pr-{2}', inputs.gcp_project, inputs.image_name, github.event.number) || '' }}
             ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:latest', inputs.gcp_project, inputs.image_name) || '' }}
             ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcp_project, inputs.image_name) || '' }}
