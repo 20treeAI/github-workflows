@@ -48,7 +48,7 @@ jobs:
           cluster_name: ${{ format('stage-{0}', inputs.cluster_name) }}
           location: europe-west4
       - name: 'Remove dev-environment'
-        uses: glopezep/helm@v1.7.1 # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
+        uses: AndreaGiardini/helm@master # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
         with:
           task: 'remove'
           helm: helm3
