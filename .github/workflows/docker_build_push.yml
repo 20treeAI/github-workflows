@@ -1,5 +1,5 @@
 ---
-name: docker workflow - build and push docker images to GCS
+name: docker workflow - build and push docker images to GCR
 
 on:
   workflow_call:
@@ -10,11 +10,12 @@ on:
         type: string
       branch:
         description: 'Git branch used for tagging incremental builds of the Docker image'
-        default: 'master'
+        default: 'main'
         required: false
         type: string
       gcp_project:
         description: 'GCP project where GCR is located for storing built Docker images'
+        default: ''
         required: true
         type: string
     secrets:

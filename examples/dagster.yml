@@ -1,0 +1,35 @@
+name: Build and push Docker images + test for dagster
+
+on:
+  pull_request: # Only builds image, does not deploy
+    types: [labeled, unlabeled, opened, synchronize, reopened, closed]
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  push:
+    branches: # Build image, push tags latest/stage, deploy to stage
+      - main
+    tags: # Build image, push tags v0.X/prod, deploy to prod
+      - '*'
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  run-dagster-ci:
+    # this line shouldn't change, but make sure it's pointed at the main branch
+    uses: 20treeAI/github-workflows/.github/workflows/dagster.yml@main
+    with:
+      # name of the docker image to build
+      image_name: poles-lines-tools
+      # which github branch this is for
+      branch: main
+      # the gcp_project shouldn't be needed, but could in the future
+      # gcp_project: myproj-1234
+      # this is the name of the k8s cluster you'd like to deploy to
+      cluster_name: elm
+    # these must be created as github repo secrets
+    secrets:
+      SSH_KEY: ${{ secrets.OVERSTORY_BOT_SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+
