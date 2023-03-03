@@ -1,6 +1,6 @@
 # github-workflows
 
-This repo contains [reusable workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows) for Github Ections.
+This repo contains [reusable workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows) for Github Actions.
 
 ## Dagster
 This [workflow](./.github/workflows/dagster.yml) will build a docker image and then test it before pushing it.
