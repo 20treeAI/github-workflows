@@ -41,7 +41,6 @@ TODO: [Example call to Docker Build and Push workflow](./examples/)
 | image_name   | Docker image name                                                  | string | None        | true     |
 | branch       | Git branch used for tagging incremental builds of the Docker image | string | master      | true     |
 | gcp_project  | GCP project where GCR is located for storing built Docker images   | string | None        | true     |
-| cluster_name | K8s cluster name on which Dagster workflow is deployed to          | string | None        | true     |
 
 #### Input Secrets
 These are the github repo secrets you must create ahead of time
