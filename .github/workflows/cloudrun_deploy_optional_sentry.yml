@@ -29,6 +29,13 @@ on:
         required: true
         default: 'stage'
         type: string
+    secrets:
+      CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY:
+        description: 'Service Account key for the cloud run deployer'
+        required: true
+      SENTRY_AUTH_TOKEN:
+        description: 'Token for sentry auth'
+        required: false
 
 jobs:
   deploy:
