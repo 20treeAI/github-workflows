@@ -73,10 +73,10 @@ TODO: [Example call to cloudrun workflow](./examples/)
 #### Input Secrets
 These are the github repo secrets you must create ahead of time
 
-| name                      | description                                                | required | 
-|:-------------------------:|:-----------------------------------------------------------|:--------:|
-| SSH_KEY                   | SSH key used to access private repos during the build      | true     |
-| GCR_RW_SERVICEACCOUNT_KEY | GCR service account credentials to push/pull Docker images | true     |
+| name                                | description                                                | required  | 
+|:-----------------------------------:|:-----------------------------------------------------------|:---------:|
+| CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY| GCP Service Account key for the cloud run deployer         | true      |
+| SENTRY_AUTH_TOKEN                   | Token for sentry authentication                            | false     |
 
 </details>
 
