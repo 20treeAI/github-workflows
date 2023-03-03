@@ -50,6 +50,8 @@ jobs:
       - name: Set up Cloud SDK
         if: ${{ inputs.image_tag }}
         uses: google-github-actions/setup-gcloud@v1.1.0
+        with:
+          credentials_json: '${{ secrets.CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY }}'
 
       - name: Tag prod Docker image
         if: ${{ inputs.image_tag }}
