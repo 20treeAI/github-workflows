@@ -31,7 +31,7 @@ These are the github repo secrets you must create ahead of time
 ## Docker Build and Push
 This [workflow](./.github/workflows/docker_build_push.yml) will build and push a docker image.
 
-TODO: [Example call to Docker Build and Push workflow](./examples/)
+[Example call to Docker Build and Push workflow](./examples/docker_build_push.yml)
 
 <details>
   <summary>Workflow Input Variables</summary>
