@@ -66,7 +66,6 @@ TODO: [Example call to cloudrun workflow](./examples/)
 | image_name     | Docker image name                                                 | string  | None           | true     |
 | gcp_project    | GCP project where GCR is located for storing built Docker images  | string  | None           | true     |
 | cluster_name   | K8s cluster name on which Dagster workflow is deployed to         | string  | None           | true     |
-| cloud_run      | Whether or not to deploy to Google Cloud Run                      | boolean | true           | true     |
 | service_name   | Name of service to update in Cloud Run                            | string  | None           | true     |
 | sentry_release | Whether or not to create a Sentry release for the this project    | boolean | false          | true     |
 | environment    | Environment to deploy to: stage or prod                           | string  | None           | true     |
