@@ -4,6 +4,15 @@ name: docker workflow - build and push docker images to GCR
 on:
   workflow_call:
     inputs:
+      artifacts_object_name:
+        description: ''
+        required: false
+        type: string
+      artifacts_path:
+        description: ''
+        default: 'build/'
+        required: false
+        type: string
       image_name:
         description: 'Docker image name'
         required: true
@@ -43,6 +52,13 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      - if: ${{ inputs.artifacts_object_name }}
+        name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifacts_object_name }}
+          path: ${{ inputs.artifacts_path }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2.4.1
