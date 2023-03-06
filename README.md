@@ -36,14 +36,15 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                  | description                                                        | type   | default     | required |
-|:---------------------:|:-------------------------------------------------------------------|:------:|:------------|:--------:|
-| image_name            | Docker image name                                                  | string | None        | true     |
-| branch                | Git branch used for tagging incremental builds of the Docker image | string | main        | true     |
-| gcp_project           | GCP project where GCR is located for storing built Docker images   | string | None        | true     |
-| artifacts_object_name | Name of the artifacts object to pass to docker build job           | string | None        | false    |
-| artifacts_path        | Path to use for the artifacts object                               | string | `build/`    | false    |
+| name                  | description                                                        | type   | default  | required |
+|:---------------------:|:-------------------------------------------------------------------|:------:|:---------|:--------:|
+| image_name            | Docker image name                                                  | string | None     | true     |
+| branch                | Git branch used for tagging incremental builds of the Docker image | string | main     | true     |
+| gcp_project           | GCP project where GCR is located for storing built Docker images   | string | None     | true     |
+| artifacts_object_name | Name of the artifacts object to pass to docker build job           | string | None     | false    |
+| artifacts_path        | Path to use for the artifacts object                               | string | `build/` | false    |
 
+        
 #### Input Secrets
 These are the github repo secrets you must create ahead of time
 
@@ -65,9 +66,10 @@ TODO: [Example call to cloudrun workflow](./examples/)
 
 | name           | description                                                       | type    | default        | required | 
 |:--------------:|:------------------------------------------------------------------|:-------:|:---------------|:--------:|
+| gcp_project    | GCP project where GCR is located for storing built Docker images  | string  | None           | true     |
+| region         | Region to deploy cloudrun app and docker image                    | string  | `europe-west4` | false    |
 | image_name     | Docker image name                                                 | string  | None           | true     |
 | image_tag      | Name of Tag for Docker image                                      | string  | None           | false    |
-| gcp_project    | GCP project where GCR is located for storing built Docker images  | string  | None           | true     |
 | service_name   | Name of service to update in Cloud Run                            | string  | None           | true     |
 | sentry_release | Whether or not to create a Sentry release for the this project    | boolean | false          | false    |
 | environment    | Environment to deploy to: stage or prod                           | string  | None           | true     |
