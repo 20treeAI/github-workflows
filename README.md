@@ -29,18 +29,20 @@ These are the github repo secrets you must create ahead of time
 
 
 ## Docker Build and Push
-This [workflow](./.github/workflows/docker_build_push.yml) will build and push a docker image.
+This [workflow](./.github/workflows/docker_build_push.yml) will build and push a docker image. You can optionally pass in artifacts from previous jobs with the `artifacts_object_name` and `artifacts_path` input variables, to ensure the docker image gets built with context from a previous job.
 
-[Example call to Docker Build and Push workflow](./examples/docker_build_push.yml)
+[Example call to Docker Build and Push workflow without artifacts](./examples/docker_build_push.yml)
 
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name         | description                                                        | type   | default     | required | 
-|:------------:|:-------------------------------------------------------------------|:------:|:------------|:--------:|
-| image_name   | Docker image name                                                  | string | None        | true     |
-| branch       | Git branch used for tagging incremental builds of the Docker image | string | main        | true     |
-| gcp_project  | GCP project where GCR is located for storing built Docker images   | string | None        | true     |
+| name                  | description                                                        | type   | default     | required |
+|:---------------------:|:-------------------------------------------------------------------|:------:|:------------|:--------:|
+| image_name            | Docker image name                                                  | string | None        | true     |
+| branch                | Git branch used for tagging incremental builds of the Docker image | string | main        | true     |
+| gcp_project           | GCP project where GCR is located for storing built Docker images   | string | None        | true     |
+| artifacts_object_name | Name of the artifacts object to pass to docker build job           | string | None        | false    |
+| artifacts_path        | Path to use for the artifacts object                               | string | `build/`    | false    |
 
 #### Input Secrets
 These are the github repo secrets you must create ahead of time
