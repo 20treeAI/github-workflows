@@ -55,6 +55,7 @@ jobs:
       # actions/checkout MUST come before auth, ref: github.com/google-github-actions/auth
       - uses: 'actions/checkout@v3'
 
+      # required for gcloud docker command and deployment to Cloud Run
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
@@ -73,6 +74,7 @@ jobs:
           project_id: ${{inputs.gcp_project }}
           image: 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}'
 
+      # this is optional
       - name: Create Sentry release
         if: ${{ inputs.create_sentry_release }}
         uses: getsentry/action-release@v1.3.1
