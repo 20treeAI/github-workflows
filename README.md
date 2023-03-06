@@ -59,7 +59,7 @@ These are the GitHub repo secrets you must create ahead of time!
 ## Deploy to Google Cloud Run (Optional: Create Sentry Release)
 This [workflow](./.github/workflows/) will deploy a docker image to a Cloud Run service and optionally create a sentry release.
 
-TODO: [Example call to cloudrun workflow](./examples/)
+[Example call to cloudrun workflow](./examples/cloudrun_deploy_optional_sentry.yml)
 
 <details>
   <summary>Workflow Input Variables</summary>

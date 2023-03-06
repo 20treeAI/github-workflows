@@ -20,10 +20,6 @@ on:
         description: 'Name of tag for docker image'
         required: false
         type: string
-      cloud_run:
-        description: 'Whether or not to deploy to Google Cloud Run'
-        default: true
-        type: boolean
       service_name:
         description: 'Name of service to update in Cloud Run'
         required: true
