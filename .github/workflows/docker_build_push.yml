@@ -5,11 +5,11 @@ on:
   workflow_call:
     inputs:
       artifacts_object_name:
-        description: ''
+        description: 'Name of the artifacts object to pass to docker build job'
         required: false
         type: string
       artifacts_path:
-        description: ''
+        description: 'Path to use for the artifacts object. Defaults to build/'
         default: 'build/'
         required: false
         type: string
@@ -70,7 +70,7 @@ jobs:
           service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
           export_default_credentials: true
 
-      - name: Configure Docker
+      - name: Use glcoud CLI to configure-docker auth
         run: gcloud auth configure-docker
 
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
@@ -87,6 +87,7 @@ jobs:
           load: true
           tags: test-image
           ssh: default
+          provenance: false
 
       - name: Push docker image
         uses: docker/build-push-action@v4.0.0
