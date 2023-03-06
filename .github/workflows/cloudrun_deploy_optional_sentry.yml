@@ -62,6 +62,7 @@ jobs:
         with:
           service: ${{ inputs.service_name }}
           region: europe-west4
+          project_id: ${{inputs.gcp_project }}
           image: 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}'
           credentials: ${{ secrets.CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY }}
 
