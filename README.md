@@ -28,7 +28,7 @@ These are the github repo secrets you must create ahead of time
 </details>
 
 
-## Docker Build and Push
+## Docker Build and Push (To GCR)
 This [workflow](./.github/workflows/docker_build_push.yml) will build and push a docker image. You can optionally pass in artifacts from previous jobs with the `artifacts_object_name` and `artifacts_path` input variables, to ensure the docker image gets built with context from a previous job.
 
 [Example call to Docker Build and Push workflow without artifacts](./examples/docker_build_push.yml)
@@ -56,7 +56,7 @@ These are the github repo secrets you must create ahead of time
 </details>
 
 
-## Deploy to Cloud Run (Optional: Create Sentry Release)
+## Deploy to Google Cloud Run (Optional: Create Sentry Release)
 This [workflow](./.github/workflows/) will deploy a docker image to a Cloud Run service and optionally create a sentry release.
 
 TODO: [Example call to cloudrun workflow](./examples/)
