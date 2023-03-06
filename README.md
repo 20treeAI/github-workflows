@@ -18,7 +18,7 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
 | cluster_name | K8s cluster name on which Dagster workflow is deployed to          | string | None           | true     |
 
 #### Input Secrets
-These are the github repo secrets you must create ahead of time
+These are the GitHub repo secrets you must create ahead of time!
 
 | name                      | description                                                | required | 
 |:-------------------------:|:-----------------------------------------------------------|:--------:|
@@ -46,7 +46,7 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 
         
 #### Input Secrets
-These are the github repo secrets you must create ahead of time
+These are the GitHub repo secrets you must create ahead of time!
 
 | name                      | description                                                | required | 
 |:-------------------------:|:-----------------------------------------------------------|:--------:|
@@ -75,7 +75,7 @@ TODO: [Example call to cloudrun workflow](./examples/)
 | environment    | Environment to deploy to: stage or prod                           | string  | None           | true     |
 
 #### Input Secrets
-These are the github repo secrets you must create ahead of time
+These are the GitHub repo secrets you must create ahead of time!
 
 | name                                | description                                                | required  | 
 |:-----------------------------------:|:-----------------------------------------------------------|:---------:|
@@ -88,4 +88,6 @@ These are the github repo secrets you must create ahead of time
 ## Yarn Build and Test
 This [workflow](./.github/workflows/yarn_build_test.yml) will build and test a yarn project.
 
-TODO: [Example call to yarn build and test workflow](./examples/)
+[Example call to yarn build and test workflow](./examples/yarn_build_test.yml)
+
+Takes no inputs at this time.

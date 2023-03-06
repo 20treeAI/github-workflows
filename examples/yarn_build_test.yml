@@ -1,0 +1,30 @@
+name: Test, Build, and Push to stage
+
+on:
+  # Trigger the workflow on push or pull request to main
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [labeled, unlabeled, opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+jobs:
+  # builds and tests the app with yarn
+  yarn_build_test:
+    uses: 20treeAI/github-workflows/.github/workflows/yarn_build_test.yml@main
+
+  # OPTIONAL: uses the build output from yarn to build and push a docker image to GCR
+  docker_build_push:
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    needs: yarn_build_test
+    with:
+      image_name: my-beautiful-docker-image
+      branch: main
+      gcp_project: myproj-12345
+      artifacts_object_name: build-artifacts
+    # !! these must be created in as secrets in your repo ahead of time !!
+    secrets:
+      SSH_KEY: ${{ secrets.ORG_SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
