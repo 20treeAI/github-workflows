@@ -88,6 +88,9 @@ jobs:
           tags: test-image
           ssh: default
 
+      - name: Configure Docker
+        run: gcloud auth configure-docker
+
       - name: Push docker image
         uses: docker/build-push-action@v4.0.0
         env:
