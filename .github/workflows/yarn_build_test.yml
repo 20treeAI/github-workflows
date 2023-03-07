@@ -1,0 +1,46 @@
+name: yarn - build and test
+
+# https://docs.github.com/en/actions/using-workflows/reusing-workflows#creating-a-reusable-workflow
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build and Test with Yarn
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-v2-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-v2-
+
+      - name: Install dependencies
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install # will run `yarn install` command
+
+      - name: Build application
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: build # will run `yarn build` command
+
+      - name: Test application
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: test # will run `yarn test` command
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: build/
+          retention-days: 1

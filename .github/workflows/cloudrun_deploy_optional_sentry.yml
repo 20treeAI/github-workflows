@@ -1,0 +1,83 @@
+name: Deploy to Google Cloud Run and Create Sentry Release
+
+on:
+  workflow_call:
+    inputs:
+      gcp_project:
+        description: 'GCP project where GCR is located for storing built Docker images'
+        required: true
+        type: string
+      region:
+        description: 'Region to deploy cloudrun app and docker image'
+        required: false
+        default: 'europe-west4'
+        type: string
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      image_tag:
+        description: 'Name of tag for docker image'
+        required: false
+        type: string
+      service_name:
+        description: 'Name of service to update in Cloud Run'
+        required: true
+        type: string
+      sentry_release:
+        description: 'Whether or not to create a Sentry release for the this project'
+        required: false
+        default: false 
+        type: boolean
+      environment:
+        description: 'Environment to deploy to: stage or prod'
+        required: true
+        default: 'stage'
+        type: string
+    secrets:
+      CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY:
+        description: 'Service Account key for the cloud run deployer'
+        required: true
+      SENTRY_AUTH_TOKEN:
+        description: 'Token for sentry auth'
+        required: false
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout MUST come before auth, ref: github.com/google-github-actions/auth
+      - uses: 'actions/checkout@v3'
+
+      # required for gcloud docker command and deployment to Cloud Run
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY }}'
+
+      - name: Tag Docker image
+        if: ${{ inputs.image_tag }}
+        run: gcloud container images add-tag '${{ inputs.image_name }}:${{ github.sha }}' '${{ inputs.image_name }}:${{ inputs.image_tag }}'
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: ${{ inputs.service_name }}
+          region: ${{ inputs.region }}
+          project_id: ${{inputs.gcp_project }}
+          image: 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}'
+
+      # this is optional
+      - name: Create Sentry release
+        if: ${{ inputs.create_sentry_release }}
+        uses: getsentry/action-release@v1.3.1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: ${{ inputs.environment }}
+          sourcemaps: './build'
