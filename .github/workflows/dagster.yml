@@ -16,6 +16,7 @@ on:
       gcp_project:
         description: 'GCP project where GCR is located for storing built Docker images'
         required: true
+        default: ''
         type: string
       cluster_name:
         description: 'K8s cluster name on which Dagster workflow is deployed to'

@@ -1,0 +1,28 @@
+name: build-push-deploy
+
+on:
+  # Trigger the workflow on push or pull request,
+  # but only for the main branch
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [labeled, unlabeled, opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+jobs:
+  docker:
+    # query our module
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    with:
+      # you can set this to any name for you docker image
+      image_name: docker-image-name
+      # which branch to build from
+      branch: main
+      # YOUR GCP project number
+      gcp_project: coolproj-1234
+    # you need to create these secrets in your repo ahead of time
+    secrets:
+      SSH_KEY: ${{ secrets.MY_SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}

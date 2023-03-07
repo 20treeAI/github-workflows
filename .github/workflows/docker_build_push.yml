@@ -1,20 +1,30 @@
 ---
-name: docker workflow - build and push docker images to GCS
+name: docker workflow - build and push docker images to GCR
 
 on:
   workflow_call:
     inputs:
+      artifacts_object_name:
+        description: 'Name of the artifacts object to pass to docker build job'
+        required: false
+        type: string
+      artifacts_path:
+        description: 'Path to use for the artifacts object. Defaults to build/'
+        default: 'build/'
+        required: false
+        type: string
       image_name:
         description: 'Docker image name'
         required: true
         type: string
       branch:
         description: 'Git branch used for tagging incremental builds of the Docker image'
-        default: 'master'
+        default: 'main'
         required: false
         type: string
       gcp_project:
         description: 'GCP project where GCR is located for storing built Docker images'
+        default: ''
         required: true
         type: string
     secrets:
@@ -43,6 +53,13 @@ jobs:
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
+      - if: ${{ inputs.artifacts_object_name }}
+        name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifacts_object_name }}
+          path: ${{ inputs.artifacts_path }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2.4.1
 
@@ -53,7 +70,7 @@ jobs:
           service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
           export_default_credentials: true
 
-      - name: Configure Docker
+      - name: Use glcoud CLI to configure-docker auth
         run: gcloud auth configure-docker
 
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
@@ -70,6 +87,7 @@ jobs:
           load: true
           tags: test-image
           ssh: default
+          provenance: false
 
       - name: Push docker image
         uses: docker/build-push-action@v4.0.0

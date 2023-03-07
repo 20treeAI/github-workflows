@@ -1,0 +1,22 @@
+name: release to prod
+
+# only deploy when a release is created in GitHub for this repo
+on:
+  release:
+    types: [published]
+
+jobs:
+  cloudrun_deploy:
+    uses: 20treeAI/github-workflows/.github/workflows/cloudrun_deploy_optional_sentry.yml@main
+    with:
+      image_name: my-beautiful-image
+      image_tag: prod
+      branch: main
+      gcp_project: myproj-1234
+      service_name: one-cool-cloud-run-service
+      sentry_release: true
+      environment: prod
+    secrets:
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+      CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY: ${{ secrets.CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY }}
