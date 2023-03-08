@@ -90,4 +90,14 @@ This [workflow](./.github/workflows/yarn_build_test.yml) will build and test a y
 
 [Example call to yarn build and test workflow](./examples/yarn_build_test.yml)
 
-Takes no inputs at this time.
+<details>
+  <summary>Workflow Input Variables</summary>
+
+#### Input Secrets
+These are the GitHub repo secrets you must create ahead of time!
+
+| name  | description                                                | required | 
+|:-----:|:-----------------------------------------------------------|:--------:|
+| TOKEN | Any sort of secret token needed at build time for yarn     | false    |
+
+</details>

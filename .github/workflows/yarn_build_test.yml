@@ -3,6 +3,10 @@ name: yarn - build and test
 # https://docs.github.com/en/actions/using-workflows/reusing-workflows#creating-a-reusable-workflow
 on:
   workflow_call:
+    secrets:
+      TOKEN:
+        description: 'Token to be passed at build time'
+        required: false
 
 jobs:
   build:
@@ -32,6 +36,7 @@ jobs:
         uses: borales/actions-yarn@v3.0.0
         with:
           cmd: build # will run `yarn build` command
+          token: ${{ secrets.TOKEN }}
 
       - name: Test application
         uses: borales/actions-yarn@v3.0.0
