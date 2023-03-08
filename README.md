@@ -1,4 +1,4 @@
-# github-workflows
+# github-workflows <a href="https://github.com/20treeAI/github-workflows/releases"><img src="https://img.shields.io/github/v/release/20treeAI/github-workflows?style=plastic&labelColor=484848&color=3CA324&logo=GitHub&logoColor=white"></a>
 
 This repo contains [reusable workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows) for Github Actions.
 
