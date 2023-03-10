@@ -4,8 +4,8 @@ name: yarn - build and test
 on:
   workflow_call:
     secrets:
-      TOKEN:
-        description: 'Token to be passed at build time'
+      REACT_APP_MAPBOX_TOKEN:
+        description: 'mapbox token to be passed to the yarn build'
         required: false
 
 jobs:
@@ -36,7 +36,8 @@ jobs:
         uses: borales/actions-yarn@v3.0.0
         with:
           cmd: build # will run `yarn build` command
-          token: ${{ secrets.TOKEN }}
+        env: 
+          REACT_APP_MAPBOX_TOKEN: ${{ secrets.REACT_APP_MAPBOX_TOKEN }}
 
       - name: Test application
         uses: borales/actions-yarn@v3.0.0
