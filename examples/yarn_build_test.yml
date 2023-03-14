@@ -14,6 +14,9 @@ jobs:
   # builds and tests the app with yarn
   yarn_build_test:
     uses: 20treeAI/github-workflows/.github/workflows/yarn_build_test.yml@main
+    secrets:
+      # this one is optional, but must be created ahead of time in the repo
+      STAGE_REACT_APP_MAPBOX_TOKEN: ${{ secrets.STAGE_REACT_APP_MAPBOX_TOKEN }}
 
   # OPTIONAL: uses the build output from yarn to build and push a docker image to GCR
   docker_build_push:
