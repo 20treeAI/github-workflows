@@ -4,10 +4,10 @@ name: yarn - build and test
 on:
   workflow_call:
     secrets:
-      STAGE_REACT_APP_MAPBOX_TOKEN:
+      REACT_APP_MAPBOX_TOKEN_STAGE:
         description: 'staging mapbox token to be passed to the yarn build'
         required: false
-      PROD_REACT_APP_MAPBOX_TOKEN:
+      REACT_APP_MAPBOX_TOKEN_PROD:
         description: 'prod mapbox token to be passed to the yarn build'
         required: false
 
@@ -40,8 +40,8 @@ jobs:
         with:
           cmd: build # will run `yarn build` command
         env: 
-          STAGE_REACT_APP_MAPBOX_TOKEN: ${{ secrets.STAGE_REACT_APP_MAPBOX_TOKEN }}
-          PROD_REACT_APP_MAPBOX_TOKEN: ${{ secrets.PROD_REACT_APP_MAPBOX_TOKEN }}
+          REACT_APP_MAPBOX_TOKEN_STAGE: ${{ secrets.REACT_APP_MAPBOX_TOKEN_STAGE }}
+          REACT_APP_MAPBOX_TOKEN_PROD: ${{ secrets.REACT_APP_MAPBOX_TOKEN_PROD }}
 
       - name: Test application
         uses: borales/actions-yarn@v3.0.0
