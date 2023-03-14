@@ -96,8 +96,9 @@ This [workflow](./.github/workflows/yarn_build_test.yml) will build and test a y
 #### Input Secrets
 These are the GitHub repo secrets you must create ahead of time!
 
-| name  | description                                                | required | 
-|:-----:|:-----------------------------------------------------------|:--------:|
-| TOKEN | Any sort of secret token needed at build time for yarn     | false    |
+| name                         | description                                              | required | 
+|:----------------------------:|:---------------------------------------------------------|:--------:|
+| STAGE_REACT_APP_MAPBOX_TOKEN | stage mapbox token secret needed at build time for yarn  | false    |
+| PROD_REACT_APP_MAPBOX_TOKEN  | prod mapbox token secret needed at build time for yarn   | false    |
 
 </details>
