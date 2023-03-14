@@ -98,7 +98,7 @@ These are the GitHub repo secrets you must create ahead of time!
 
 | name                         | description                                              | required | 
 |:----------------------------:|:---------------------------------------------------------|:--------:|
-| STAGE_REACT_APP_MAPBOX_TOKEN | stage mapbox token secret needed at build time for yarn  | false    |
-| PROD_REACT_APP_MAPBOX_TOKEN  | prod mapbox token secret needed at build time for yarn   | false    |
+| REACT_APP_MAPBOX_TOKEN_STAGE | stage mapbox token secret needed at build time for yarn  | false    |
+| REACT_APP_MAPBOX_TOKEN_PROD  | prod mapbox token secret needed at build time for yarn   | false    |
 
 </details>
