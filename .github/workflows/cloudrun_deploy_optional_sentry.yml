@@ -60,7 +60,7 @@ jobs:
 
       - name: Tag Docker image
         if: ${{ inputs.image_tag }}
-        run: gcloud container images add-tag '${{ inputs.image_name }}:${{ github.sha }}' '${{ inputs.image_name }}:${{ inputs.image_tag }}'
+        run: gcloud container images add-tag 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}' 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ inputs.image_tag }}'
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
