@@ -22,6 +22,8 @@ jobs:
       branch: main
       # YOUR GCP project number
       gcp_project: coolproj-1234
+      # whether or not to test a docker image for dagster compatibility
+      test_dagster: false
     # you need to create these secrets in your repo ahead of time
     secrets:
       SSH_KEY: ${{ secrets.MY_SSH_KEY }}

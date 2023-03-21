@@ -21,15 +21,26 @@ jobs:
     uses: 20treeAI/github-workflows/.github/workflows/dagster.yml@main
     with:
       # name of the docker image to build
-      image_name: poles-lines-tools
+      image_name: my-dagster-docker-image
       # which github branch this is for
       branch: main
-      # the gcp_project shouldn't be needed, but could in the future
-      # gcp_project: myproj-1234
-      # this is the name of the k8s cluster you'd like to deploy to
-      cluster_name: elm
+      # GCP project you're deploying to
+      gcp_project: myproj-1234
+      # location you're deploying your project to, defaults to europe-west4
+      gcp_location: 'europe-west4'
+      # name of the k8s cluster you'd like to deploy to
+      cluster_name: my-gke-cluster-name
+      # name of the k8s cluster you'd like to deploy to
+      stage_cluster_name: my-staging-gke-cluster-name
+      # FQDN of the k8s cluster you'd like to deploy to
+      stage_cluster_domain: mycooldomain.rocks
+      # FQDN of the auth domain for your k8s cluster
+      stage_auth_domain: auth.mycooldomain.rocks
+      # the service account that will be used by dagster in k8s
+      stage_dagster_service_account_name: dagster-service-account
+      # Only required if you want a version other than 0.15.10
+      dagster_version: '0.15.10'
     # these must be created as github repo secrets
     secrets:
-      SSH_KEY: ${{ secrets.OVERSTORY_BOT_SSH_KEY }}
+      SSH_KEY: ${{ secrets.BOT_SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
-

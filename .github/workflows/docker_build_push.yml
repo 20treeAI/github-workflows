@@ -1,5 +1,5 @@
 ---
-name: docker workflow - build and push docker images to GCR
+name: docker workflow - build and push docker images to GCR and optionally test with dagster
 
 on:
   workflow_call:
@@ -24,9 +24,13 @@ on:
         type: string
       gcp_project:
         description: 'GCP project where GCR is located for storing built Docker images'
-        default: ''
         required: true
         type: string
+      test_dagster:
+        description: 'whether or not to test dagster compatibility of built docker image'
+        required: false
+        default: false
+        type: boolean
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
@@ -36,7 +40,7 @@ on:
         required: true
 
 jobs:
-  docker:
+  docker-build-test-push:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +80,7 @@ jobs:
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
         id: get_tag
         name: Get tag
-        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${GITHUB_REF#refs/tags/}
+        run: echo "IMAGE_FULLNAME=eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Build docker image
         uses: docker/build-push-action@v4.0.0
@@ -88,6 +92,22 @@ jobs:
           tags: test-image
           ssh: default
           provenance: false
+
+      - if: ${{ inputs.test_dagster }}
+        name: Find repository.py file
+        id: find_repo_file
+        run: echo "REPOSITORY_PY_LOCATION=$(find . -maxdepth 2 -name repository.py)" >> $GITHUB_OUTPUT
+
+      - if: ${{ inputs.test_dagster }}
+        name: Test Dagster Docker image
+        run: |
+          docker run -p 8080:8080 -d --env 'TZ=Europe/Brussels' --name test_container test-image \
+              dagster api grpc -h 0.0.0.0 -p 8080 --python-file "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
+          sleep 5
+          wget -O/tmp/grpc_health_probe -q https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.11/grpc_health_probe-linux-amd64
+          chmod +x /tmp/grpc_health_probe
+          for i in $(seq 1 10); do /tmp/grpc_health_probe -addr=localhost:8080 && s=0 && break || s=$? && sleep 2; done; (docker logs test_container && exit $s)
+
 
       - name: Push docker image
         uses: docker/build-push-action@v4.0.0

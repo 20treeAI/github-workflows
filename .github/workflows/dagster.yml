@@ -1,5 +1,5 @@
 ---
-name: Dagster workflow - build, push and deploy a Dagster workflow to K8s
+name: Dagster workflow - build, test and push a docker image for dagster to GCR. Also supports deploying a developer environment to GKE for testing.
 
 on:
   workflow_call:
@@ -10,18 +10,44 @@ on:
         type: string
       branch:
         description: 'Git branch used for tagging incremental builds of the Docker image'
-        default: 'master'
+        default: 'main'
         required: false
         type: string
       gcp_project:
-        description: 'GCP project where GCR is located for storing built Docker images'
+        description: 'GCP project where GKE/GCR are located for storing built Docker images'
         required: true
-        default: ''
+        type: string
+      gcp_location:
+        description: 'Location where GKE is located for storing built Docker images'
+        required: false
+        default: 'europe-west4'
         type: string
       cluster_name:
-        description: 'K8s cluster name on which Dagster workflow is deployed to'
+        description: 'K8s cluster name on which Dagster jobs are deployed to'
         required: true
         type: string
+      stage_cluster_name:
+        description: 'K8s stage cluster name on which Dagster jobs are deployed to'
+        required: true
+        type: string
+      stage_cluster_domain:
+        description: 'FQDN for URL for cluster running dagster'
+        type: string
+        required: true
+      stage_dagster_service_account_name:
+        description: 'k8s service account used for dagster'
+        type: string
+        required: true
+      stage_auth_domain:
+        description: 'FQDN for authentication URL for cluster running dagster'
+        type: string
+        required: true
+      dagster_version:
+        description: 'Version of dagster to deploy helm chart for'
+        type: string
+        default: '0.15.10'
+        required: false
+
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
@@ -30,116 +56,41 @@ on:
         description: 'GCR service account credentials to push/pull Docker images'
         required: true
 
-env:
-  AUTH_URL: ***REMOVED***
-
 jobs:
-  cleanup-pr:
-    if: github.event.action == 'closed' || ( github.event.action == 'unlabeled' && !contains(github.event.pull_request.labels.*.name, 'dev-env') )
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.1
-        with:
-          project_id: ${{ inputs.gcp_project }}
-          service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
-          export_default_credentials: true
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ format('stage-{0}', inputs.cluster_name) }}
-          location: europe-west4
-      - name: 'Remove dev-environment'
-        uses: AndreaGiardini/helm@master # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
-        with:
-          task: 'remove'
-          helm: helm3
-          repository: 'https://dagster-io.github.io/helm'
-          chart: 'dagster'
-          release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
-          namespace: 'dagster'
-      - uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: dev-env-location
-          delete: true
 
-  docker:
-    if: github.event.action != 'closed'
+  run-docker-workflow:
+    # only run on synchronize PR event, meaning something has been pushed to the PR branch
+    if: github.event.action == 'synchronize'
+    # query our reusable docker build and push workflow
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    with:
+      image_name: ${{ inputs.image_name }}
+      branch: ${{ inputs.branch }}
+      gcp_project: ${{ inputs.gcp_project }}
+      test_dagster: true
+    secrets:
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+
+  deploy-to-gke:
+    if: github.event_name == 'push'
+    needs: run-docker-workflow
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup SSH Keys and known_hosts
-        shell: bash -l {0}
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.SSH_KEY }}"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2.4.1
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.1
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
         with:
-          project_id: ${{ inputs.gcp_project }}
-          service_account_key: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
-          export_default_credentials: true
+          credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
 
-      - name: Configure Docker
-        run: gcloud auth configure-docker
-
-      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        id: get_tag
-        name: Get tag
-        run: echo ::set-output name=IMAGE_FULLNAME::eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${GITHUB_REF#refs/tags/}
-
-      - name: Build docker image
-        uses: docker/build-push-action@v4.0.0
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      - uses: 'google-github-actions/get-gke-credentials@v1'
+        name: 'Get GKE cluster credentials'
         with:
-          context: .
-          load: true
-          tags: test-image
-          ssh: default
-
-      - name: Find repository.py file
-        id: find_repo_file
-        run: echo ::set-output name=REPOSITORY_PY_LOCATION::$(find . -maxdepth 2 -name repository.py)
-
-      - name: Test docker image
-        run: |
-          docker run -p 8080:8080 -d --name test_container test-image \
-              dagster api grpc -h 0.0.0.0 -p 8080 --python-file "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
-          sleep 5
-          wget -O/tmp/grpc_health_probe -q https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.11/grpc_health_probe-linux-amd64
-          chmod +x /tmp/grpc_health_probe
-          for i in $(seq 1 10); do /tmp/grpc_health_probe -addr=localhost:8080 && s=0 && break || s=$? && sleep 2; done; (docker logs test_container && exit $s)
-
-      - name: Push docker image
-        uses: docker/build-push-action@v4.0.0
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        with:
-          context: .
-          push: true
-          ssh: default
-          tags: |
-            ${{ github.event_name == 'pull_request' && format('eu.gcr.io/{0}/{1}:pr-{2}', inputs.gcp_project, inputs.image_name, github.event.number) || '' }}
-            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:latest', inputs.gcp_project, inputs.image_name) || '' }}
-            ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('eu.gcr.io/{0}/{1}:stage', inputs.gcp_project, inputs.image_name) || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/') && steps.get_tag.outputs.IMAGE_FULLNAME || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/') && format('eu.gcr.io/{0}/{1}:prod', inputs.gcp_project, inputs.image_name) || '' }}
-          provenance: false # Image attestations not supported in GCR: https://github.com/docker/buildx/issues/1533
-
-      - uses: google-github-actions/get-gke-credentials@v0.3.0
-        with:
-          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || format('stage-{0}', inputs.cluster_name) }}
-          location: europe-west4
+          cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || inputs.stage_cluster_name }}
+          location: ${{ inputs.gcp_location }}
 
       - if: ${{ github.event_name == 'push' }}
         name: Deploy to cluster
@@ -147,16 +98,39 @@ jobs:
           kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
           kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
 
-      - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
-        name: Deploy dev environment
-        uses: AndreaGiardini/helm@master # Should be replaced with deliverybot/helm@v1 when https://github.com/deliverybot/helm/issues/66 is fixed
+  deploy-dev-env-to-gke:
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
+
+      - uses: 'google-github-actions/get-gke-credentials@v1'
+        name: 'Get GKE cluster credentials'
+        with:
+          cluster_name: ${{ inputs.stage_cluster_name }}
+          location: ${{ inputs.gcp_location }}
+
+      - name: Find repository.py file for helm deployment
+        id: find_repo_file
+        run: echo "REPOSITORY_PY_LOCATION=$(find . -maxdepth 2 -name repository.py)" >> $GITHUB_OUTPUT
+
+      - name: Install dagster helm chart for developer environment
+        uses: vimeda/helm@v1.6.8
         with:
           helm: helm3
-          repository: 'https://dagster-io.github.io/helm'
-          chart: 'dagster'
+          repo: 'https://dagster-io.github.io/helm'
+          repo-alias: 'dagster'
+          chart: 'dagster/dagster'
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: 'dagster'
-          chartVersion: '0.15.10'
+          chart-version: '${{ inputs.dagster_version }}'
           values: |
             dagsterDaemon:
               nodeSelector:
@@ -186,7 +160,7 @@ jobs:
                 failureThreshold: 3
             global:
               postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
-              serviceAccountName: ***REMOVED***
+              serviceAccountName: ${{ inputs.stage_dagster_service_account_name }}
             dagster-user-deployments:
               deployments:
                 - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
@@ -201,28 +175,25 @@ jobs:
                   nodeSelector:
                     cloud.google.com/gke-nodepool: core
                   labels:
-                    dev-environment.overstory.io/deploysha: "${{ github.sha }}"
+                    dev-environment.${{ inputs.stage_cluster_domain }}/deploysha: "${{ github.sha }}"
             ingress:
               enabled: true
               annotations:
                 kubernetes.io/ingress.class: ingress-nginx
                 cert-manager.io/cluster-issuer: letsencrypt
-                nginx.ingress.kubernetes.io/auth-signin: "https://${{ env.AUTH_URL }}/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err"
-                nginx.ingress.kubernetes.io/auth-url: "https://${{ env.AUTH_URL }}/validate"
+                nginx.ingress.kubernetes.io/auth-signin: "https://${{ inputs.stage_auth_domain }}/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err"
+                nginx.ingress.kubernetes.io/auth-url: "https://${{ inputs.stage_auth_domain }}/validate"
                 nginx.ingress.kubernetes.io/auth-response-headers: X-Vouch-User
                 nginx.ingress.kubernetes.io/auth-snippet: |
                   auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
                   auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
                   auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
               dagit:
-                host: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.***REMOVED***"
+                host: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
                 path: "/"
                 tls:
                   enabled: true
                   secretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-ssl-secret"
-            pipelineRun:
-              env:
-                ***REMOVED***: 'development'
             serviceAccount:
               create: false
             postgresql:
@@ -238,5 +209,36 @@ jobs:
         with:
           header: dev-env-location
           message: |
-            :rocket: Release deployed to <https://${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.***REMOVED***>
+            :rocket: Release deployed to <https://${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}>
             The first deployment will take a couple of minutes. Sit tight
+
+  cleanup-dev-env:
+    # if dev-env label is removed from PR, or PR is closed, remove the dev-env from the cluster
+    if: github.event.action == 'closed' || ( github.event.action == 'unlabeled' && !contains(github.event.pull_request.labels.*.name, 'dev-env') )
+    runs-on: ubuntu-latest
+    steps:
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
+      - uses: 'google-github-actions/get-gke-credentials@v1'
+        name: 'Get GKE cluster credentials from Google Cloud'
+        with:
+          cluster_name: ${{ inputs.stage_cluster_name }}
+          location: ${{ inputs.gcp_location }}
+      - name: 'Remove dev environment from GKE'
+        uses: vimeda/helm@v1.6.8
+        with:
+          task: 'remove'
+          helm: helm3
+          repo: 'https://dagster-io.github.io/helm'
+          repo-alias: 'dagster'
+          chart: 'dagster/dagster'
+          release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
+          namespace: 'dagster'
+      - uses: marocchino/sticky-pull-request-comment@v2
+        name: 'Remove PR comment for dev-env'
+        with:
+          header: dev-env-location
+          delete: true
