@@ -57,10 +57,9 @@ on:
         required: true
 
 jobs:
-
   run-docker-workflow:
     # only run on synchronize PR event, meaning something has been pushed to the PR branch
-    if: github.event.action == 'synchronize'
+    if: ${{ github.event.action == 'synchronize' || github.event.action == 'push' }}
     # query our reusable docker build and push workflow
     uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
     with:
@@ -92,8 +91,7 @@ jobs:
           cluster_name: ${{ startsWith(github.ref, 'refs/tags/') && inputs.cluster_name || inputs.stage_cluster_name }}
           location: ${{ inputs.gcp_location }}
 
-      - if: ${{ github.event_name == 'push' }}
-        name: Deploy to cluster
+      - name: Deploy to cluster
         run: |
           kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
           kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
