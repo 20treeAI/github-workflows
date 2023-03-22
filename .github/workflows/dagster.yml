@@ -85,6 +85,11 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
 
+      - name: Tag Docker image
+        run: |
+          gcloud container images add-tag 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}' 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:latest'
+          gcloud container images add-tag 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}' 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:prod'
+
       - uses: 'google-github-actions/get-gke-credentials@v1'
         name: 'Get GKE cluster credentials'
         with:
