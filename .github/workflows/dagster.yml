@@ -59,7 +59,7 @@ on:
 jobs:
   run-docker-workflow:
     # only run on synchronize PR event, meaning something has been pushed to the PR branch
-    if: ${{ github.event.action == 'synchronize' || github.event.action == 'push' }}
+    if: ${{ github.event.action == 'synchronize' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env')) ||  github.event.action == 'push' }}
     # query our reusable docker build and push workflow
     uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
     with:
@@ -99,6 +99,7 @@ jobs:
   deploy-dev-env-to-gke:
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env') }}
     runs-on: ubuntu-latest
+    needs: run-docker-workflow
     steps:
       - name: Checkout
         uses: actions/checkout@v2
