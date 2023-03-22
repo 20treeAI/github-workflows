@@ -72,7 +72,7 @@ jobs:
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
 
   deploy-to-gke:
-    if: github.event_name == 'push'
+    if: ${{ github.event_name == 'push' }}
     needs: run-docker-workflow
     runs-on: ubuntu-latest
     steps:
