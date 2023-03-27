@@ -4,12 +4,12 @@ on:
   workflow_call:
     inputs:
       python_version:
-        description: 'Exact version of python you'd like to setup'
+        description: 'Exact version of python you would like to setup'
         required: false
         type: string
         default: '3.10'
       poetry_version:
-        description: 'Exact version of poetry you'd like use'
+        description: 'Exact version of poetry you would like use'
         required: false
         default: '1.4.1'
         type: string
