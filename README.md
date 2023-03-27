@@ -121,7 +121,7 @@ You must already have a [docs dependency group](https://python-poetry.org/docs/m
 mkdocs-material = "^8.5.1"
 ```
 
-[Example call to yarn build and test workflow](./examples/deploy_mkdocs.yml)
+[Example call to mkdocs workflow](./examples/deploy_mkdocs.yml)
 
 <details>
   <summary>Workflow Input Variables</summary>
