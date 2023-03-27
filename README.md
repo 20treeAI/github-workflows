@@ -110,3 +110,25 @@ These are the GitHub repo secrets you must create ahead of time!
 | REACT_APP_MAPBOX_TOKEN_PROD  | prod mapbox token secret needed at build time for yarn   | false    |
 
 </details>
+
+## Deploy mkdocs via Github Pages
+This [workflow](./.github/workflows/deploy_mkdocs.yml) will install python, poetry, and then deploy the docs dependency group.
+
+You must already have a [docs dependency group](https://python-poetry.org/docs/managing-dependencies/#optional-groups) defined in your `pyproject.toml` like:
+
+```toml
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^8.5.1"
+```
+
+[Example call to yarn build and test workflow](./examples/deploy_mkdocs.yml)
+
+<details>
+  <summary>Workflow Input Variables</summary>
+
+| name           | description                       | type    | default        | required | 
+|:--------------:|:----------------------------------|:-------:|:---------------|:--------:|
+| python_version | version of python you'd like use  | string  | '3.10'         | false    |
+| poetry_version | version of poetry you'd like use  | string  | '1.4.1'        | false    |
+
+</details>
