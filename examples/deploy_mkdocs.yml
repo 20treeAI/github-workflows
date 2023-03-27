@@ -1,0 +1,21 @@
+name: Publish docs via GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy_mkdocs.yml'
+
+jobs:
+ # make sure you have a poetry docs dependency group created in your pyproject.toml:
+ # ref: https://python-poetry.org/docs/managing-dependencies/#optional-groups
+ deploy-mkdocs:
+    # this line shouldn't change, but make sure it's pointed at the main branch
+    uses: 20treeAI/github-workflows/.github/workflows/deploy_mkdocs.yml@main
+    with:
+      # the version of python you'd like to use (defaults to python 3.10)
+      python_version: '3.10'
+      # the version of poetry you'd like to use (defaults to 1.4.1)
+      poetry_version: '1.4.1'
