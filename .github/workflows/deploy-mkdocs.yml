@@ -1,0 +1,37 @@
+name: Publish docs via GitHub Pages using poetry
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: 'Exact version of python you'd like to setup'
+        required: false
+        type: string
+        default: '3.10'
+      poetry_version:
+        description: 'Exact version of poetry you'd like use'
+        required: false
+        default: '1.4.1'
+        type: string
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: ${{ inputs.poetry_version }}
+
+      - name: Install mkdocs as dependency
+        run: poetry install --only docs
+
+      - name: Deploy docs
+        run: poetry run mkdocs gh-deploy --force -f mkdocs.yml
