@@ -236,6 +236,9 @@ jobs:
           chart: 'dagster/dagster'
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: 'dagster'
+      # this has to be done manually to clean up the postgresql PVC
+      - name: 'Remove dev environment Persistent Volume Claim'
+        run: kubectl delete pvc -n dagster -l release=${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}
       - uses: marocchino/sticky-pull-request-comment@v2
         name: 'Remove PR comment for dev-env'
         with:
