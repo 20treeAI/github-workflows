@@ -121,7 +121,7 @@ jobs:
         run: echo "REPOSITORY_PY_LOCATION=$(find . -maxdepth 2 -name repository.py)" >> $GITHUB_OUTPUT
 
       - name: Install dagster helm chart for developer environment
-        uses: vimeda/helm@v1.6.8
+        uses: vimeda/helm@v1.7.0
         with:
           helm: helm3
           repo: 'https://dagster-io.github.io/helm'
@@ -227,7 +227,7 @@ jobs:
           cluster_name: ${{ inputs.stage_cluster_name }}
           location: ${{ inputs.gcp_location }}
       - name: 'Remove dev environment from GKE'
-        uses: vimeda/helm@v1.6.8
+        uses: vimeda/helm@v1.7.0
         with:
           task: 'remove'
           helm: helm3
