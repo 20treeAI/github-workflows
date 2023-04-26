@@ -59,7 +59,7 @@ on:
 jobs:
   run-docker-workflow:
     # only run on synchronize PR event, meaning something has been pushed to the PR branch
-    if: (github.event.action != 'closed' || github.event.action == 'push') && github.event.action != 'unlabeled'
+    if: contains(fromJSON('["opened", "synchronize", "reopened", "push"]'), github.event.action) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'dev-env')
     # query our reusable docker build and push workflow
     uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
     with:
