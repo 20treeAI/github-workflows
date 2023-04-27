@@ -17,6 +17,11 @@ on:
         description: 'Docker image name'
         required: true
         type: string
+      directory:
+        description: 'Dockerfile directory'
+        required: false
+        type: string
+        default: '.'
       branch:
         description: 'Git branch used for tagging incremental builds of the Docker image'
         default: 'main'
@@ -87,7 +92,7 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
-          context: .
+          context: ${{ inputs.directory }}
           load: true
           tags: test-image
           ssh: default
@@ -108,13 +113,12 @@ jobs:
           chmod +x /tmp/grpc_health_probe
           for i in $(seq 1 10); do /tmp/grpc_health_probe -addr=localhost:8080 && s=0 && break || s=$? && sleep 2; done; (docker logs test_container && exit $s)
 
-
       - name: Push docker image
         uses: docker/build-push-action@v4.0.0
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
-          context: .
+          context: ${{ inputs.directory }}
           push: true
           ssh: default
           tags: |
