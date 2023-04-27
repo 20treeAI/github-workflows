@@ -46,6 +46,7 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 | name                  | description                                                        | type    | default  | required |
 |:---------------------:|:-------------------------------------------------------------------|:-------:|:---------|:--------:|
 | image_name            | Docker image name                                                  | string  | None     | true     |
+| directory             | Directory containing the Dockerfile                                | string  | '.'      | false    |
 | branch                | Git branch used for tagging incremental builds of the Docker image | string  | main     | true     |
 | gcp_project           | GCP project where GCR is located for storing built Docker images   | string  | None     | true     |
 | artifacts_object_name | Name of the artifacts object to pass to docker build job           | string  | None     | false    |
