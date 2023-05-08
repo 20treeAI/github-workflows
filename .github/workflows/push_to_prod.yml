@@ -1,0 +1,49 @@
+name: Push to Production
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      service_name:
+        description: 'Service name'
+        required: true
+        type: string
+
+    secrets:
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: true
+      GCR_RW_SERVICEACCOUNT_KEY:
+        description: 'GCR service account credentials to push/pull Docker images'
+        required: true
+jobs:
+  release-to-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 'actions/checkout@v3' # Required for auth
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - name: Tag Docker image
+        run: |
+          gcloud container images add-tag ${{ inputs.image_name }}:${{ github.sha }} ${{ inputs.image_name }}:${{ github.event.release.tag_name }}
+          gcloud container images add-tag ${{ inputs.image_name }}:${{ github.sha }} ${{ inputs.image_name }}:prod
+
+      - name: Deploy to Cloud Run
+        uses: 'google-github-actions/deploy-cloudrun@v1'
+        with:
+          service: ${{ inputs.service_name }}
+          region: europe-west4
+          image: '${{ inputs.image_name }}:${{ github.sha }}'
+          credentials: ${{ secrets.CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY }}
+
