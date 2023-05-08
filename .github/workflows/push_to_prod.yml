@@ -46,4 +46,3 @@ jobs:
           region: europe-west4
           image: '${{ inputs.image_name }}:${{ github.sha }}'
           credentials: ${{ secrets.CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY }}
-
