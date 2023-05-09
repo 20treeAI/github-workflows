@@ -60,7 +60,7 @@ jobs:
         echo "${{ steps.fmt.outcome }}" >> $GITHUB_STEP_SUMMARY
         echo "#### Terraform Initialization ⚙️" >> $GITHUB_STEP_SUMMARY
         terraform init
-        terraform workspace select ${{ input.workspace }}
+        terraform workspace select ${{ inputs.workspace }}
 
     - name: Terraform Validate
       id: validate
