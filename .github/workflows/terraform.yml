@@ -56,6 +56,8 @@ jobs:
 
     - name: Terraform - initialize terraform env
       id: init
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         echo "${{ steps.fmt.outcome }}" >> $GITHUB_STEP_SUMMARY
         echo "#### Terraform Initialization ⚙️" >> $GITHUB_STEP_SUMMARY
@@ -64,6 +66,8 @@ jobs:
 
     - name: Terraform Validate
       id: validate
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         echo "${{ steps.init.outcome }}" >> $GITHUB_STEP_SUMMARY
         echo "#### Terraform Validation 🤖" >> $GITHUB_STEP_SUMMARY
@@ -72,6 +76,8 @@ jobs:
 
     - name: Terraform Plan
       id: plan
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run:  |
           echo "${{ steps.validate.outcome }}" >> $GITHUB_STEP_SUMMARY
           terraform plan
@@ -122,16 +128,22 @@ jobs:
 
     - name: Terraform Init
       id: init
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run:  |
           terraform init
 
     - name: Terraform workspace select
       id: workspace
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run:  |
           terraform workspace select ${{ inputs.workspace }}
 
     - name: Terraform Apply
       id: apply
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run:  |
           terraform apply -auto-approve
 
