@@ -91,7 +91,6 @@ jobs:
 
 
   terraform_deploy:
-    # if the terraform workspace is dev
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     # makes this job dependent on terraform_test
     needs: terraform_test
