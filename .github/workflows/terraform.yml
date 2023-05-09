@@ -115,7 +115,6 @@ jobs:
         terraform_version: 1.4.5
 
     - name: Setup SSH Keys and known_hosts
-      shell: bash -l {0}
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
