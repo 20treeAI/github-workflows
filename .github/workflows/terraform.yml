@@ -15,7 +15,8 @@ on:
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY:
         description: 'GCP service account credentials json for terraform'
         required: true
-
+env:
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 jobs:
   terraform_test:
     runs-on: ubuntu-latest
