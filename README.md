@@ -135,7 +135,7 @@ mkdocs-material = "^8.5.1"
 
 
 ## Terraform Lint, Plan, Deploy to GCP
-This [workflow](./.github/workflows/terraform.yml) will deploy a docker image to a Cloud Run service and optionally create a sentry release.
+This [workflow](./.github/workflows/terraform.yml) will deploy a private terraform repo to GCP.
 
 [Example call to terraform workflow](./examples/terraform.yml)
 
