@@ -1,0 +1,203 @@
+---
+name: Terraform - dev - Linting, formatting, planning, and deployment
+on:
+  # this is for reusable workflows
+  workflow_call:
+    inputs:
+      terraform_workspace:
+        description: "Terraform workspace to deploy to. e.g. dev, stage, prod"
+        required: true
+        type: string
+    secrets:
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: true
+      GCP_TERRAFORM_SERVICE_ACCOUNT_KEY:
+        description: 'GCP service account credentials json for terraform'
+        required: true
+
+jobs:
+  terraform_test:
+    strategy:
+      # if set to true, GitHub will cancel all in-progress and
+      # queued jobs in the matrix if any job in the matrix fails.
+      fail-fast: true
+      matrix:
+        workspaces: ${{ inputs.terraform_workspace }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup SSH Keys and known_hosts
+      shell: bash -l {0}
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+    - name: HashiCorp - Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.5
+
+    - name: Terraform - check formatting
+      id: fmt
+      run: |
+          echo "#### Terraform Format and Style 💃" >> $GITHUB_STEP_SUMMARY
+          terraform fmt -check
+      continue-on-error: true
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}'
+
+    - name: Terraform - initialize terraform env
+      id: init
+      run: |
+        echo "${{ steps.fmt.outcome }}" >> $GITHUB_STEP_SUMMARY
+        echo "#### Terraform Initialization ⚙️" >> $GITHUB_STEP_SUMMARY
+        terraform init
+        terraform workspace select ${{ matrix.workspaces }}
+
+    - name: Terraform Validate
+      id: validate
+      run: |
+        echo "${{ steps.init.outcome }}" >> $GITHUB_STEP_SUMMARY
+        echo "#### Terraform Validation 🤖" >> $GITHUB_STEP_SUMMARY
+        terraform validate
+      continue-on-error: true
+
+    - name: Terraform Plan
+      id: plan
+      run:  |
+          echo "${{ steps.validate.outcome }}" >> $GITHUB_STEP_SUMMARY
+          terraform plan
+      # for debuging the steps after this
+      continue-on-error: true
+
+    # add a summary with the ci status
+    - name: Post Plan Step Summaries
+      run: |
+          echo "#### Terraform Plan 📖" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.plan.outcome }}" >> $GITHUB_STEP_SUMMARY
+
+
+  terraform_deploy_dev:
+    # if the terraform workspace is dev
+    if: contains(inputs.workspaces, 'dev') && (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    # makes this job dependent on terraform_test
+    needs: terraform_test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    environment: dev
+    steps:
+    - uses: actions/checkout@v3
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}'
+
+    - name: HashiCorp - Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.5
+
+    - name: Setup SSH Keys and known_hosts
+      shell: bash -l {0}
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+    - name: Terraform Init
+      id: init
+      run:  |
+          terraform init
+
+    - name: Terraform workspace select
+      id: workspace
+      run:  |
+          terraform workspace select ${{ .workspaces }}
+
+    - name: Terraform Apply
+      id: apply
+      run:  |
+          terraform apply -auto-approve
+
+    # add a summary with the ci status
+    - name: Post Deploy Step Summaries
+      run: |
+          echo "Deploy outcome" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.apply.outcome }}" >> $GITHUB_STEP_SUMMARY
+
+
+  terraform_deploy_prod:
+    if: contains(inputs.workspaces, 'prod') && (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    runs-on: ubuntu-latest
+    # makes this job dependent on terraform_test
+    needs: terraform_test
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    environment: prod
+    steps:
+    - uses: actions/checkout@v3
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}'
+
+    - name: HashiCorp - Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.5
+
+    - name: Setup SSH Keys and known_hosts
+      shell: bash -l {0}
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+    - name: Terraform Init
+      id: init
+      run:  |
+          terraform init
+
+    - name: Terraform workspace select
+      id: workspace
+      run:  |
+          terraform workspace select prod 
+
+    - name: Terraform Apply
+      id: apply
+      run:  |
+          terraform apply -auto-approve
+
+    # add a summary with the ci status
+    - name: Post Deploy Step Summaries
+      run: |
+          echo "${{ steps.apply.outcome }}" >> $GITHUB_STEP_SUMMARY
