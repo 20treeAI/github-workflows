@@ -20,7 +20,9 @@ jobs:
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
 
   prod-deploy:
-    # this will not run until the terraform dev apply is successful
+    # only run plan and deploy to prod on pushes to main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # this will not run until the previous job's terraform apply is successful
     needs: dev-deploy
     uses: 20treeAI/github-workflows/.github/workflows/terraform.yml@main
     with:
