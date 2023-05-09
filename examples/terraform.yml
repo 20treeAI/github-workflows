@@ -1,0 +1,32 @@
+---
+name: Terraform - Planning, Deployment
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  dev-deploy:
+    uses: 20treeAI/github-workflows/.github/workflows/terraform.yml@main
+    with:
+      terraform_workspace: 'dev'
+    secrets:
+      SSH_KEY: ${{ secrets.PRIVATE_REPO_SSH_KEY }}
+      GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
+
+  prod-deploy:
+    # only run plan and deploy to prod on pushes to main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # this will not run until the previous job's terraform apply is successful
+    needs: dev-deploy
+    uses: 20treeAI/github-workflows/.github/workflows/terraform.yml@main
+    with:
+      terraform_workspace: 'prod'
+    secrets:
+      SSH_KEY: ${{ secrets.PRIVATE_REPO_SSH_KEY }}
+      GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
