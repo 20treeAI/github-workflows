@@ -5,8 +5,13 @@ on:
   workflow_call:
     inputs:
       terraform_workspace:
-        description: "Terraform workspace to deploy to. e.g. dev, stage, prod"
+        description: "Terraform workspace to deploy to. e.g. stage, prod"
         required: true
+        type: string
+      terraform_directory:
+        description: "Directory with the terraform you want to run"
+        required: false
+        default: "."
         type: string
     secrets:
       SSH_KEY:
@@ -17,6 +22,9 @@ on:
         required: true
 env:
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+defaults:
+  run:
+    working-directory: ${{ inputs.terraform_directory }}
   
 jobs:
   terraform_test:
@@ -73,7 +81,7 @@ jobs:
       id: plan
       run:  |
           echo "${{ steps.validate.outcome }}" >> $GITHUB_STEP_SUMMARY
-          terraform plan
+          terraform plan -lock=${{ github.event_name != 'push' }}
       # for debuging the steps after this
       continue-on-error: true
 
