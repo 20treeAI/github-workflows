@@ -81,7 +81,7 @@ jobs:
       id: plan
       run:  |
           echo "${{ steps.validate.outcome }}" >> $GITHUB_STEP_SUMMARY
-          terraform plan
+          terraform plan -lock=${{ github.event_name != 'push' }}
       # for debuging the steps after this
       continue-on-error: true
 
