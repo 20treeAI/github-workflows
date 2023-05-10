@@ -22,6 +22,9 @@ on:
         required: true
 env:
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+defaults:
+  run:
+    working-directory: ${{ inputs.terraform_directory }}
   
 jobs:
   terraform_test:
@@ -49,7 +52,6 @@ jobs:
       id: fmt
       run: |
           echo "#### Terraform Format and Style 💃" >> $GITHUB_STEP_SUMMARY
-          cd ${{ inputs.terraform_directory }}
           terraform fmt -check
       continue-on-error: true
 
@@ -126,7 +128,6 @@ jobs:
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run:  |
-          cd ${{ inputs.terraform_directory }}
           terraform init
 
     - name: Terraform workspace select
