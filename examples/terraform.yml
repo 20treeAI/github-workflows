@@ -1,5 +1,7 @@
 ---
 name: Terraform - Planning, Deployment
+# ensures you don't run any additional workflows at the same time as one another to prevent state locking issues
+concurreny: terraform_workflow
 on:
   push:
     branches:
