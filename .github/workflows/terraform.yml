@@ -69,25 +69,29 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        # Enable no-color for PRs since raw output is shown in PR comment
         run: terraform plan ${{ github.event_name == 'pull_request' && '-no-color' || '' }} -input=false -lock=${{ github.event_name != 'push' }}
 
       # add a summary with the ci status
       - name: Post Plan Step Summaries
         uses: actions/github-script@v6
-        if: always() && github.event_name == 'pull_request'
+        if: always()
         env:
-          # TODOL output plan
           PLAN: '${{ steps.plan.outputs.stdout }}'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `### :rocket: Test summary
+            function getTestRecord(test, step_outcome) {
+              return `| ${test} | ${step_outcome === 'success' ? ':white_check_mark:' : ':x:'} |`;
+            }
+
+            const output = `### :rocket: Test summary - \`${{ inputs.terraform_directory }}\` ${{ inputs.terraform_workspace }}
             | Step                          | Result                        |
             | ------------------------------| ----------------------------- |
-            | Terraform Format and Style 💃 | ${{ steps.fmt.outcome }}      |
-            | Terraform Initialization ⚙️   | ${{ steps.init.outcome }}     |
-            | Terraform Validation 🤖       | ${{ steps.validate.outcome }} |
-            | Terraform Plan 📖             | ${{ steps.plan.outcome }}     |
+            ${getTestRecord('Terraform Format and Style 💃', '${{ steps.fmt.outcome }}')}
+            ${getTestRecord('Terraform Initialization ⚙️', '${{ steps.init.outcome }}')}
+            ${getTestRecord('Terraform Validation 🤖', '${{ steps.validate.outcome }}')}
+            ${getTestRecord('Terraform Plan 📖', '${{ steps.plan.outcome }}')}
 
             <details><summary>Show Plan</summary>
 
