@@ -69,30 +69,55 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -lock=${{ github.event_name != 'push' }}
+        run: terraform plan ${{ github.event_name == 'pull_request' && '-no-color' || '' }} -input=false -lock=${{ github.event_name != 'push' }}
 
       # add a summary with the ci status
       - name: Post Plan Step Summaries
-        if: always()
-        run: |
-          {
-            echo "### :rocket: Test summary"
-            echo "| Step                          | Result                        |"
-            echo "| ------------------------------| ----------------------------- |"
-            echo "| Terraform Format and Style 💃 | ${{ steps.fmt.outcome }}      |"
-            echo "| Terraform Initialization ⚙️    | ${{ steps.init.outcome }}     |"
-            echo "| Terraform Validation 🤖       | ${{ steps.validate.outcome }} |"
-            echo "| Terraform Plan 📖             | ${{ steps.plan.outcome }}     |"
-          } >> $GITHUB_STEP_SUMMARY
-          if [[ ${{ steps.fmt.outcome }} == 'success' ]] && \
-             [[ ${{ steps.init.outcome }} == 'success' ]] && \
-             [[ ${{ steps.validate.outcome }} == 'success' ]] && \
-             [[ ${{ steps.plan.outcome }} == 'success' ]]
-          then
-            exit 0
-          else
-            exit 1
-          fi
+        uses: actions/github-script@v6
+        if: always() && github.event_name == 'pull_request'
+        env:
+          # TODOL output plan
+          PLAN: '${{ steps.plan.outputs.stdout }}'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `### :rocket: Test summary
+            | Step                          | Result                        |
+            | ------------------------------| ----------------------------- |
+            | Terraform Format and Style 💃 | ${{ steps.fmt.outcome }}      |
+            | Terraform Initialization ⚙️   | ${{ steps.init.outcome }}     |
+            | Terraform Validation 🤖       | ${{ steps.validate.outcome }} |
+            | Terraform Plan 📖             | ${{ steps.plan.outcome }}     |
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>`;
+
+            await core.summary.addRaw(output).write()
+
+            if (context.eventName === 'pull_request') {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+
+            const outcomes = [
+              '${{ steps.fmt.outcome }}',
+              '${{ steps.init.outcome }}',
+              '${{ steps.validate.outcome }}',
+              '${{ steps.plan.outcome }}'
+            ];
+
+            if (!outcomes.every(i => i === 'success')) {
+              core.setFailed('The test did not complete successfully.');
+            }
 
   terraform_deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -145,5 +170,7 @@ jobs:
       # add a summary with the ci status
       - name: Post Deploy Step Summaries
         run: |
-          echo "Deploy outcome" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.apply.outcome }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "Deploy outcome"
+            echo "${{ steps.apply.outcome }}"
+          } >> $GITHUB_STEP_SUMMARY
