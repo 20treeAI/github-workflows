@@ -13,6 +13,10 @@ on:
         required: false
         default: '.'
         type: string
+      github_environment:
+        description: 'GitHub environment to gate steps with'
+        required: true
+        type: string
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
@@ -128,11 +132,10 @@ jobs:
     # makes this job dependent on terraform_test
     needs: terraform_test
     runs-on: ubuntu-latest
+    environment: ${{ inputs.github_environment }}
     defaults:
       run:
         working-directory: ${{ inputs.terraform_directory }}
-
-    environment: ${{ inputs.terraform_workspace }}
     steps:
       - uses: actions/checkout@v3
 
