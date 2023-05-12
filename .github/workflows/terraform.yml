@@ -1,0 +1,180 @@
+---
+name: Terraform - Linting, formatting, planning, and deployment
+on:
+  # this is for reusable workflows
+  workflow_call:
+    inputs:
+      terraform_workspace:
+        description: 'Terraform workspace to deploy to. e.g. stage, prod'
+        required: true
+        type: string
+      terraform_directory:
+        description: 'Directory with the terraform you want to run'
+        required: false
+        default: '.'
+        type: string
+    secrets:
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: true
+      GCP_TERRAFORM_SERVICE_ACCOUNT_KEY:
+        description: 'GCP service account credentials json for terraform'
+        required: true
+env:
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
+jobs:
+  terraform_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.terraform_directory }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup SSH Keys and known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.5
+
+      - name: Terraform - check formatting
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}'
+
+      - name: Terraform - initialize terraform env
+        id: init
+        run: |
+          terraform init
+          terraform workspace select ${{ inputs.terraform_workspace }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        continue-on-error: true
+
+      - name: Terraform Plan
+        id: plan
+        # Enable no-color for PRs since raw output is shown in PR comment
+        run: terraform plan ${{ github.event_name == 'pull_request' && '-no-color' || '' }} -input=false -lock=${{ github.event_name != 'push' }}
+
+      # add a summary with the ci status
+      - name: Post Plan Step Summaries
+        uses: actions/github-script@v6
+        if: always()
+        env:
+          PLAN: '${{ steps.plan.outputs.stdout }}'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            function getTestRecord(test, step_outcome) {
+              return `| ${test} | ${step_outcome === 'success' ? ':white_check_mark:' : ':x:'} |`;
+            }
+
+            const output = `### :rocket: Test summary - \`${{ inputs.terraform_directory }}\` ${{ inputs.terraform_workspace }}
+            | Step                          | Result                        |
+            | ------------------------------| ----------------------------- |
+            ${getTestRecord('Terraform Format and Style 💃', '${{ steps.fmt.outcome }}')}
+            ${getTestRecord('Terraform Initialization ⚙️', '${{ steps.init.outcome }}')}
+            ${getTestRecord('Terraform Validation 🤖', '${{ steps.validate.outcome }}')}
+            ${getTestRecord('Terraform Plan 📖', '${{ steps.plan.outcome }}')}
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>`;
+
+            await core.summary.addRaw(output).write()
+
+            if (context.eventName === 'pull_request') {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+
+            const outcomes = [
+              '${{ steps.fmt.outcome }}',
+              '${{ steps.init.outcome }}',
+              '${{ steps.validate.outcome }}',
+              '${{ steps.plan.outcome }}'
+            ];
+
+            if (!outcomes.every(i => i === 'success')) {
+              core.setFailed('The test did not complete successfully.');
+            }
+
+  terraform_deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # makes this job dependent on terraform_test
+    needs: terraform_test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.terraform_directory }}
+
+    environment: ${{ inputs.terraform_workspace }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}'
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.5
+
+      - name: Setup SSH Keys and known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      - name: Terraform Init
+        id: init
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          terraform init
+
+      - name: Terraform workspace select
+        id: workspace
+        run: |
+          terraform workspace select ${{ inputs.terraform_workspace }}
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply -auto-approve
+
+      # add a summary with the ci status
+      - name: Post Deploy Step Summaries
+        run: |
+          {
+            echo "Deploy outcome"
+            echo "${{ steps.apply.outcome }}"
+          } >> $GITHUB_STEP_SUMMARY

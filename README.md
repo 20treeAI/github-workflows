@@ -67,7 +67,7 @@ These are the GitHub repo secrets you must create ahead of time!
 
 ## Deploy to Google Cloud Run (Optional: Create Sentry Release)
 
-This [workflow](./.github/workflows/) will deploy a docker image to a Cloud Run service and optionally create a sentry release.
+This [workflow](./.github/workflows/cloudrun_deploy_optional_sentry.yml) will deploy a docker image to a Cloud Run service and optionally create a sentry release.
 
 [Example call to cloudrun workflow](./examples/cloudrun_deploy_optional_sentry.yml)
 
@@ -135,5 +135,28 @@ mkdocs-material = "^8.5.1"
 | :------------- | :------------------------------- | :----: | :------ | :------: |
 | python_version | version of python you'd like use | string | '3.10'  |  false   |
 | poetry_version | version of poetry you'd like use | string | '1.4.1' |  false   |
+
+</details>
+
+
+## Terraform Lint, Plan, Deploy to GCP
+This [workflow](./.github/workflows/terraform.yml) will deploy a private terraform repo to GCP.
+
+[Example call to terraform workflow](./examples/terraform.yml)
+
+<details>
+  <summary>Workflow Input Variables</summary>
+
+| name                | description                                                       | type    | default        | required | 
+|:-------------------:|:------------------------------------------------------------------|:-------:|:---------------|:--------:|
+| terraform_workspace | The terraform workspace you'd like to plan and deploy changes to  | string  | None           | true     |
+
+#### Input Secrets
+These are the GitHub repo secrets you must create ahead of time!
+
+| name                             | description                                                | required  | 
+|:--------------------------------:|:-----------------------------------------------------------|:---------:|
+| SSH_KEY                          | SSH key used to access private repos during the build      | true      |
+| GCP_TERRAFORM_SERVICE_ACCOUNT_KEY| service account credentials to deploy your terraform infra | true      |
 
 </details>
