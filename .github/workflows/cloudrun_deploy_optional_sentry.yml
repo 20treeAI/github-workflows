@@ -27,7 +27,7 @@ on:
       sentry_release:
         description: 'Whether or not to create a Sentry release for the this project'
         required: false
-        default: false 
+        default: false
         type: boolean
       environment:
         description: 'Environment to deploy to: stage or prod'
@@ -44,6 +44,8 @@ on:
 
 jobs:
   deploy:
+    env:
+      IMAGE_NAME: eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}
     name: Deploy to ${{ inputs.environment }}
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
@@ -60,7 +62,10 @@ jobs:
 
       - name: Tag Docker image
         if: ${{ inputs.image_tag }}
-        run: gcloud container images add-tag 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}' 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ inputs.image_tag }}'
+        run: gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}'
+
+      - name: Tag Docker image with environment
+        run: gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.environment }}'
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
@@ -68,11 +73,11 @@ jobs:
           service: ${{ inputs.service_name }}
           region: ${{ inputs.region }}
           project_id: ${{inputs.gcp_project }}
-          image: 'eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}:${{ github.sha }}'
+          image: '${{ env.IMAGE_NAME }}:${{ github.sha }}'
 
       # this is optional
       - name: Create Sentry release
-        if: ${{ inputs.create_sentry_release }}
+        if: ${{ inputs.sentry_release }}
         uses: getsentry/action-release@v1.3.1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

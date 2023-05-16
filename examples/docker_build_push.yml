@@ -24,6 +24,8 @@ jobs:
       gcp_project: coolproj-1234
       # whether or not to test a docker image for dagster compatibility
       test_dagster: false
+      # whether to skip image push (so that you can test image build without pushing)
+      skip_image_push: true
     # you need to create these secrets in your repo ahead of time
     secrets:
       SSH_KEY: ${{ secrets.MY_SSH_KEY }}
