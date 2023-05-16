@@ -45,7 +45,7 @@ on:
       dagster_version:
         description: 'Version of dagster to deploy helm chart for'
         type: string
-        default: '0.15.10'
+        default: '1.2.2'
         required: false
 
     secrets:
