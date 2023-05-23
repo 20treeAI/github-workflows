@@ -131,5 +131,5 @@ jobs:
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
         name: Set release tags
         run: |
-          gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ github.ref_name }}'
-          gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
+          yes |gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ github.ref_name }}'
+          yes |gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
