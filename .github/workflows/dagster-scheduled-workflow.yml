@@ -56,7 +56,6 @@ jobs:
     needs: run-docker-workflow
     runs-on: ubuntu-latest
     steps:
-      # do we actually need this checkout? it's only used for the docker image right?
       - name: Checkout
         uses: actions/checkout@v3
 
