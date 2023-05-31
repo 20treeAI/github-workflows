@@ -129,8 +129,8 @@ jobs:
             ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('{0}:stage', env.IMAGE_NAME) || '' }}
           provenance: false # Image attestations not supported in GCR: https://github.com/docker/buildx/issues/1533
 
-      # if either a tag is provided, or if the run is scheduled (using automatic docker re-builds) for security
-      - if: ${{ startsWith(github.ref, 'refs/tags/') }} || ${{ github.event_name == 'scheduled' }}
+      # if either a tag is provided, run re-tag the image with prod and the commit hash
+      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
         name: Set release tags
         run: |
           gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ github.ref_name }}'
