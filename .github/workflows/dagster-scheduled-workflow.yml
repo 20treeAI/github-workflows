@@ -1,0 +1,108 @@
+---
+name: Dagster scheduled workflow - build, test and push a docker image for dagster to GCR nightly
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      branch:
+        description: 'Git branch used for tagging incremental builds of the Docker image'
+        default: 'main'
+        required: false
+        type: string
+      gcp_project:
+        description: 'GCP project where GKE/GCR are located for storing built Docker images'
+        required: true
+        type: string
+      gcp_location:
+        description: 'Location where GKE is located for storing built Docker images'
+        required: false
+        default: 'europe-west4'
+        type: string
+      cluster_name:
+        description: 'K8s cluster name on which Dagster jobs are deployed to'
+        required: true
+        type: string
+      stage_cluster_name:
+        description: 'K8s stage cluster name on which Dagster jobs are deployed to'
+        required: true
+        type: string
+
+    secrets:
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: true
+      GCR_RW_SERVICEACCOUNT_KEY:
+        description: 'GCR service account credentials to push/pull Docker images'
+        required: true
+
+jobs:
+  run-docker-workflow:
+    # query our reusable docker build and push workflow
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    with:
+      image_name: ${{ inputs.image_name }}
+      branch: ${{ inputs.branch }}
+      gcp_project: ${{ inputs.gcp_project }}
+      test_dagster: true
+    secrets:
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+
+  deploy-to-gke-stage:
+    needs: run-docker-workflow
+    runs-on: ubuntu-latest
+    steps:
+      # do we actually need this checkout? it's only used for the docker image right?
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
+
+      - uses: 'google-github-actions/get-gke-credentials@v1'
+        name: 'Get GKE cluster credentials'
+        with:
+          cluster_name: ${{ inputs.stage_cluster_name }}
+          location: ${{ inputs.gcp_location }}
+
+      - name: Deploy to cluster
+        run: |
+          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
+          kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m
+          echo "Stage Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
+
+  deploy-to-gke-prod:
+    needs: deploy-to-gke-stage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}'
+
+      - name: Re-tag stage image with prod
+        run: |
+          gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
+
+      - uses: 'google-github-actions/get-gke-credentials@v1'
+        name: 'Get GKE cluster credentials'
+        with:
+          cluster_name: ${{ inputs.cluster_name }}
+          location: ${{ inputs.gcp_location }}
+
+      - name: Deploy to cluster
+        run: |
+          kubectl rollout restart deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }}
+          kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m
+          echo "Prod Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
