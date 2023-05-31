@@ -31,6 +31,10 @@ on:
         required: false
         default: false
         type: boolean
+      test_base_tag:
+        description: 'base tag to pass in as a build arg for dagster dockerfiles, for testing new base images on the fly'
+        required: false
+        type: string
       skip_image_push:
         description: 'whether to skip pushing the docker image'
         required: false
@@ -85,7 +89,7 @@ jobs:
       - name: Use glcoud CLI to configure-docker auth
         run: gcloud auth configure-docker
 
-      - if: ${{ inputs.test_dagster }}
+      - if: ${{ inputs.test_dagster }} && ! ${{ inputs.test_base_tag }}
         name: Build docker image
         uses: docker/build-push-action@v4.0.0
         env:
@@ -96,6 +100,22 @@ jobs:
           tags: test-image
           ssh: default
           provenance: false
+          
+      - if: ${{ inputs.test_dagster }} && ${{ inputs.test_base_tag }}
+        name: Build docker image with new base
+        uses: docker/build-push-action@v4.0.0
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        with:
+          context: .
+          build-args: |
+            TAG=${{ inputs.test_base_tag }}
+          load: true
+          tags: |
+            test-image
+            ${{ inputs.test_base_tag }}
+          ssh: default
+          provenance: false    
 
       - if: ${{ inputs.test_dagster }}
         name: Find repository.py file
