@@ -20,6 +20,7 @@ jobs:
     secrets:
       SSH_KEY: ${{ secrets.PRIVATE_REPO_SSH_KEY }}
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
+      GITHUB_TERRAFORM_TOKEN: ${{ secrets.GITHUB_TERRAFORM_TOKEN }}
 
   prod-deploy:
     # only run plan and deploy to prod on pushes to main
@@ -32,3 +33,4 @@ jobs:
     secrets:
       SSH_KEY: ${{ secrets.PRIVATE_REPO_SSH_KEY }}
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
+      GITHUB_TERRAFORM_TOKEN: ${{ secrets.GITHUB_TERRAFORM_TOKEN }}
