@@ -154,10 +154,12 @@ This [workflow](./.github/workflows/terraform.yml) will deploy a private terrafo
 #### Input Secrets
 These are the GitHub repo secrets you must create ahead of time!
 
-| name                             | description                                                     | required  | 
-|:--------------------------------:|:----------------------------------------------------------------|:---------:|
-| SSH_KEY                          | SSH key used to access private repos during the build           | true      |
-| GCP_TERRAFORM_SERVICE_ACCOUNT_KEY| service account credentials to deploy your terraform infra      | true      |
-| GITHUB_TERRAFORM_TOKEN           | Token used for authenticating via the Github Terraform provider | false     |
+| name                             | description                                                                 | required  | 
+|:--------------------------------:|:----------------------------------------------------------------------------|:---------:|
+| SSH_KEY                          | SSH key used to access private repos during the build                       | true      |
+| GCP_TERRAFORM_SERVICE_ACCOUNT_KEY| service account credentials to deploy your terraform infra                  | true      |
+| TF_GITHUB_APP_ID                 | ID of App for authenticating via the Github Terraform provider              | false     |
+| TF_GITHUB_APP_INSTALLATION_ID    | Installation ID of App for authenticating via the Github Terraform provider | false     |
+| TF_GITHUB_APP_PEM_FILE           | PEM file of App for authenticating via the Github Terraform provider        | false     |
 
 </details>

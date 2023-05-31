@@ -24,9 +24,16 @@ on:
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY:
         description: 'GCP service account credentials json for terraform'
         required: true
-      GITHUB_TERRAFORM_TOKEN:
-        description: 'Token for authenticating with the Github Terraform provider'
+      TF_GITHUB_APP_ID:
+        description: 'ID of App for authenticating with the Github Terraform provider'
         required: false
+      TF_GITHUB_APP_INSTALLATION_ID:
+        description: 'Installation ID of App for authenticating with the Github Terraform provider'
+        required: false
+      TF_GITHUB_APP_PEM_FILE:
+        description: 'PEM file of App for authenticating with the Github Terraform provider'
+        required: false
+
 env:
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
@@ -175,7 +182,9 @@ jobs:
       - name: Terraform Apply
         id: apply
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TERRAFORM_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.TF_GITHUB_APP_ID }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.TF_GITHUB_APP_INSTALLATION_ID }}
+          GITHUB_APP_PEM_FILE: ${{ secrets.TF_GITHUB_APP_PEM_FILE }}
         run: |
           terraform apply -auto-approve
 
