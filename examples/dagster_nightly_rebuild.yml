@@ -1,0 +1,20 @@
+name: Nightly Build and Push Docker Image for Security Updates
+
+on:
+  # to rebuild the image nightly
+  schedule:
+    # every day at 01:00 UTC (1AM)
+    - cron: '0 1 * * *'
+
+jobs:
+  run-dagster-nightly-rebuild:
+    uses: 20treeAI/github-workflows/.github/workflows/dagster-scheduled-workflow.yml@main
+    with:
+      image_name: my-really-cool-dagster-app
+      branch: main
+      gcp_project: projectcool-133742
+      cluster_name: prod-cluster-name
+      stage_cluster_name: stage-cluster-name
+    secrets:
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}

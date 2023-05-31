@@ -28,7 +28,7 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
 
 This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GCR first in stage and then will retag for production. 
 
-[Example call to dagster workflow](./examples/dagster-nightly-rebuild.yml)
+[Example call to dagster workflow](./examples/dagster_nightly_rebuild.yml)
 
 <details>
   <summary>Workflow Input Variables</summary>
