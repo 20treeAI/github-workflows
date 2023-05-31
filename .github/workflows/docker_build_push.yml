@@ -113,7 +113,7 @@ jobs:
           for i in $(seq 1 10); do /tmp/grpc_health_probe -addr=localhost:8080 && s=0 && break || s=$? && sleep 2; done; (docker logs test_container && exit $s)
 
       - name: Push docker image
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }} || ${{ github.event_name == 'scheduled' }}
         uses: docker/build-push-action@v4.0.0
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -128,7 +128,7 @@ jobs:
             ${{ github.ref == format('refs/heads/{0}', inputs.branch) && format('{0}:stage', env.IMAGE_NAME) || '' }}
           provenance: false # Image attestations not supported in GCR: https://github.com/docker/buildx/issues/1533
 
-      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      - if: ${{ startsWith(github.ref, 'refs/tags/') }} || ${{ github.event_name == 'scheduled' }}
         name: Set release tags
         run: |
           gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ github.ref_name }}'
