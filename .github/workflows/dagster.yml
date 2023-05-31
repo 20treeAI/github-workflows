@@ -47,6 +47,10 @@ on:
         type: string
         default: '1.2.2'
         required: false
+      test_base_tag:
+        description: 'base tag to pass in as a build arg for dagster dockerfiles, for testing new base images on the fly'
+        required: false
+        type: string
 
     secrets:
       SSH_KEY:
@@ -67,6 +71,7 @@ jobs:
       branch: ${{ inputs.branch }}
       gcp_project: ${{ inputs.gcp_project }}
       test_dagster: true
+      test_base_tag: ${{ inputs.test_base_tag }}
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
