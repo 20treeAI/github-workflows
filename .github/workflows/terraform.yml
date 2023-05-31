@@ -24,6 +24,16 @@ on:
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY:
         description: 'GCP service account credentials json for terraform'
         required: true
+      TF_GITHUB_APP_ID:
+        description: 'ID of App for authenticating with the Github Terraform provider'
+        required: false
+      TF_GITHUB_APP_INSTALLATION_ID:
+        description: 'Installation ID of App for authenticating with the Github Terraform provider'
+        required: false
+      TF_GITHUB_APP_PEM_FILE:
+        description: 'PEM file of App for authenticating with the Github Terraform provider'
+        required: false
+
 env:
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
@@ -73,6 +83,10 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        env:
+          TF_VAR_github_app_id: ${{ secrets.TF_GITHUB_APP_ID }}
+          TF_VAR_github_app_installation_id: ${{ secrets.TF_GITHUB_APP_INSTALLATION_ID }}
+          TF_VAR_github_app_pem_file: ${{ secrets.TF_GITHUB_APP_PEM_FILE }}
         # Enable no-color for PRs since raw output is shown in PR comment
         run: terraform plan ${{ github.event_name == 'pull_request' && '-no-color' || '' }} -input=false -lock=${{ github.event_name != 'push' }}
 
@@ -171,6 +185,10 @@ jobs:
 
       - name: Terraform Apply
         id: apply
+        env:
+          TF_VAR_github_app_id: ${{ secrets.TF_GITHUB_APP_ID }}
+          TF_VAR_github_app_installation_id: ${{ secrets.TF_GITHUB_APP_INSTALLATION_ID }}
+          TF_VAR_github_app_pem_file: ${{ secrets.TF_GITHUB_APP_PEM_FILE }}
         run: |
           terraform apply -auto-approve
 
