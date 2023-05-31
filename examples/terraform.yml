@@ -17,6 +17,7 @@ jobs:
     uses: 20treeAI/github-workflows/.github/workflows/terraform.yml@main
     with:
       terraform_workspace: 'dev'
+      github_environment: 'dev'
     secrets:
       SSH_KEY: ${{ secrets.PRIVATE_REPO_SSH_KEY }}
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
@@ -30,6 +31,7 @@ jobs:
     uses: 20treeAI/github-workflows/.github/workflows/terraform.yml@main
     with:
       terraform_workspace: 'prod'
+      github_environment: 'prod'
     secrets:
       SSH_KEY: ${{ secrets.PRIVATE_REPO_SSH_KEY }}
       GCP_TERRAFORM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_TERRAFORM_SERVICE_ACCOUNT_KEY }}
