@@ -16,7 +16,7 @@ jobs:
       # these are the names of your k8s clusters
       cluster_name: prod-cluster-name
       stage_cluster_name: stage-cluster-name
-      # this needs to be configured in your repo settings > environments
+      # these need to be configured in your repo settings > environments
       prod_github_environment: prod
       stage_github_environment: stage
     secrets:
