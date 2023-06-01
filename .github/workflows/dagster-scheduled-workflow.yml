@@ -31,12 +31,14 @@ on:
         required: true
         type: string
       prod_github_environment:
-        description: 'prod GitHub environment to recieve alerts on failure'
-        required: true
+        description: 'prod GitHub environment to receive alerts on failure'
+        default: 'prod'
+        required: false
         type: string
       stage_github_environment:
-        description: 'stage GitHub environment to recieve alerts on failure'
-        required: true
+        description: 'stage GitHub environment to receive alerts on failure'
+        default: 'stage'
+        required: false
         type: string
 
     secrets:
