@@ -13,9 +13,11 @@ jobs:
       image_name: my-really-cool-dagster-app
       branch: main
       gcp_project: projectcool-133742
+      # these are the names of your k8s clusters
       cluster_name: prod-cluster-name
-      prod_github_environment: prod
       stage_cluster_name: stage-cluster-name
+      # this needs to be configured in your repo settings > environments
+      prod_github_environment: prod
       stage_github_environment: stage
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
