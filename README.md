@@ -24,6 +24,8 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
 | stage_dagster_service_account_name | Development K8s cluster name on which Dagster jobs are deployed to              | string | None         |   true   |
 | dagster_version                    | Version of dagster to deploy helm chart for                                     | string | '0.15.10'    |  false   |
 
+</details>
+  
 ## Dagster Scheduled Rebuild and Deploy
 
 This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GCR first in stage and then will retag for production. 
