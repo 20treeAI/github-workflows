@@ -83,7 +83,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v1'
 
       - name: Use glcoud CLI to configure-docker auth
-        run: gcloud auth configure-docker
+        run: gcloud auth configure-docker eu.gcr.io,europe-west4-docker.pkg.dev
 
       - if: ${{ inputs.test_dagster }}
         name: Build docker image
