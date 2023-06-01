@@ -61,7 +61,7 @@ jobs:
     # only run on synchronize PR event, meaning something has been pushed to the PR branch
     if: github.event_name == 'push' || contains(fromJSON('["opened", "synchronize", "reopened", "push"]'), github.event.action) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'dev-env')
     # query our reusable docker build and push workflow
-    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@gar-support
     with:
       image_name: ${{ inputs.image_name }}
       branch: ${{ inputs.branch }}
