@@ -2,7 +2,7 @@
 
 This repo contains [reusable workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows) for Github Actions.
 
-## Dagster
+## Dagster Build, Test, Deploy
 
 This [workflow](./.github/workflows/dagster.yml) will build a docker image and then test it before pushing it to GCR. Also supports creating development environment in stage cluster if you label a PR `dev-env`. The development enviornment will be removed if you remove the label or close the PR.
 
@@ -23,6 +23,25 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
 | stage_auth_domain                  | FQDN for authentication URL for cluster running dagster                         | string | None         |   true   |
 | stage_dagster_service_account_name | Development K8s cluster name on which Dagster jobs are deployed to              | string | None         |   true   |
 | dagster_version                    | Version of dagster to deploy helm chart for                                     | string | '0.15.10'    |  false   |
+
+## Dagster Scheduled Rebuild and Deploy
+
+This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GCR first in stage and then will retag for production. 
+
+[Example call to dagster workflow](./examples/dagster_nightly_rebuild.yml)
+
+<details>
+  <summary>Workflow Input Variables</summary>
+
+| name                         | description                                                                     |  type  | default      | required |
+| :----------------------------| :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
+| image_name                   | Docker image name                                                               | string | None         |   true   |
+| gcp_project                  | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
+| gcp_location                 | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
+| cluster_name                 | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
+| stage_cluster_name           | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
+| prod_github_environment      | The prod GitHub environment you'd like to use for deployments                   | string | None         |   true   |
+| stage_ github_environment    | The stage GitHub environment you'd like to use for deployments                  | string | None         |   true   |
 
 #### Input Secrets
 
@@ -150,6 +169,7 @@ This [workflow](./.github/workflows/terraform.yml) will deploy a private terrafo
 | name                | description                                                       | type    | default        | required | 
 |:-------------------:|:------------------------------------------------------------------|:-------:|:---------------|:--------:|
 | terraform_workspace | The terraform workspace you'd like to plan and deploy changes to  | string  | None           | true     |
+| github_environment  | The GitHub environment you'd like to use for deployments          | string  | None           | true     |
 
 #### Input Secrets
 These are the GitHub repo secrets you must create ahead of time!
