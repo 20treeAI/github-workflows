@@ -30,6 +30,14 @@ on:
         description: 'K8s stage cluster name on which Dagster jobs are deployed to'
         required: true
         type: string
+      prod_github_environment:
+        description: 'prod GitHub environment to recieve alerts on failure'
+        required: true
+        type: string
+      stage_github_environment:
+        description: 'stage GitHub environment to recieve alerts on failure'
+        required: true
+        type: string
 
     secrets:
       SSH_KEY:
@@ -54,6 +62,7 @@ jobs:
 
   deploy-to-gke-stage:
     needs: run-docker-workflow
+    environment: ${{ inputs.stage_github_environment }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -80,6 +89,7 @@ jobs:
   deploy-to-gke-prod:
     needs: deploy-to-gke-stage
     runs-on: ubuntu-latest
+    environment: ${{ inputs.prod_github_environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
