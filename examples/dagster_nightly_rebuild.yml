@@ -14,7 +14,9 @@ jobs:
       branch: main
       gcp_project: projectcool-133742
       cluster_name: prod-cluster-name
+      prod_github_environment: prod
       stage_cluster_name: stage-cluster-name
+      stage_github_environment: stage
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}

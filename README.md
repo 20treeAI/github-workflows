@@ -33,13 +33,15 @@ This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                               | description                                                                     |  type  | default      | required |
-| :--------------------------------- | :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
-| image_name                         | Docker image name                                                               | string | None         |   true   |
-| gcp_project                        | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
-| gcp_location                       | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
-| cluster_name                       | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
-| stage_cluster_name                 | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
+| name                         | description                                                                     |  type  | default      | required |
+| :----------------------------| :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
+| image_name                   | Docker image name                                                               | string | None         |   true   |
+| gcp_project                  | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
+| gcp_location                 | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
+| cluster_name                 | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
+| stage_cluster_name           | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
+| prod_github_environment      | The prod GitHub environment you'd like to use for deployments                   | string | None         |   true   |
+| stage_ github_environment    | The stage GitHub environment you'd like to use for deployments                  | string | None         |   true   |
 
 #### Input Secrets
 
@@ -167,6 +169,7 @@ This [workflow](./.github/workflows/terraform.yml) will deploy a private terrafo
 | name                | description                                                       | type    | default        | required | 
 |:-------------------:|:------------------------------------------------------------------|:-------:|:---------------|:--------:|
 | terraform_workspace | The terraform workspace you'd like to plan and deploy changes to  | string  | None           | true     |
+| github_environment  | The GitHub environment you'd like to use for deployments          | string  | None           | true     |
 
 #### Input Secrets
 These are the GitHub repo secrets you must create ahead of time!
