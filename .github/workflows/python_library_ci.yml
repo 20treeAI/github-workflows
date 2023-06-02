@@ -69,7 +69,7 @@ jobs:
           poetry install
 
       - name: Linting
-        run: poetry run pre-commit run --all-files
+        run: poetry run pre-commit run --files ${{ inputs.working_directory }}/**/*
 
       - name: Run tests
         run: |
