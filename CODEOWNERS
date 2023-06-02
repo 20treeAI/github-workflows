@@ -1,3 +1,4 @@
 * jesse@overstory.com angela@overstory.com
-.github/workflows/dagster.yml alex@overstory.com
-.github/workflows/cloudrun_deploy_optional_sentry.yml angela@overstory.com jenna@overstory.com logan@overstory.com
+.github/workflows/dagster.yml alex@overstory.com max@overstory.com miguel@overstory.com martin@overstory.com
+.github/workflows/cloudrun_deploy_optional_sentry.yml jenna@overstory.com logan@overstory.com
+.github/workflows/yarn_build_test.yml logan@overstory.com
