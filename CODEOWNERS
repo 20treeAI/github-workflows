@@ -1,5 +1,6 @@
-* jesse@overstory.com angela@overstory.com
-.github/workflows/dagster.yml alex@overstory.com maxime@overstory.com miguel@overstory.com martin@overstory.com jenna@overstory.com
-.github/workflows/dagster-scheduled-workflow.yml alex@overstory.com maxime@overstory.com miguel@overstory.com martin@overstory.com jenna@overstory.com
-.github/workflows/cloudrun_deploy_optional_sentry.yml jenna@overstory.com logan@overstory.com
-.github/workflows/yarn_build_test.yml logan@overstory.com
+* @20treeAI/devops
+.github/workflows/dagster.yml @20treeAI/dataplatform @20treeAI/geoanalytics @20treeAI/web-product @20treeAI/trees
+.github/workflows/dagster-scheduled-workflow.yml @20treeAI/dataplatform @20treeAI/geoanalytics @20treeAI/web-product @20treeAI/trees
+.github/workflows/python_library_ci.yml @20treeAI/web-product @20treeAI/dataplatform @20treeAI/geoanalytics @20treeAI/trees
+.github/workflows/cloudrun_deploy_optional_sentry.yml @20treeAI/web-product @20treeAI/dataplatform
+.github/workflows/yarn_build_test.yml @20treeAI/web-product logan@overstory.com
