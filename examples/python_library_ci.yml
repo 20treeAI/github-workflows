@@ -1,0 +1,21 @@
+name: SDK CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  sdk_ci:
+    uses: 20treeAI/github-workflows/.github/workflows/python_library_ci.yml@main
+    with:
+      working_directory: ./libraries/sdk
+      repo_uri: 'https://europe-python.pkg.dev/my-project/lib'
+      use_release_name: true
+    secrets:
+      REGISTRY_RW_SERVICEACCOUNT_KEY: ${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}

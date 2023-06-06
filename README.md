@@ -28,22 +28,22 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
   
 ## Dagster Scheduled Rebuild and Deploy
 
-This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GCR first in stage and then will retag for production. 
+This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GCR first in stage and then will retag for production.
 
 [Example call to dagster workflow](./examples/dagster_nightly_rebuild.yml)
 
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                         | description                                                                     |  type  | default      | required |
-| :----------------------------| :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
-| image_name                   | Docker image name                                                               | string | None         |   true   |
-| gcp_project                  | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
-| gcp_location                 | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
-| cluster_name                 | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
-| stage_cluster_name           | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
-| prod_github_environment      | The prod GitHub environment you'd like to use for deployments                   | string | None         |   true   |
-| stage_ github_environment    | The stage GitHub environment you'd like to use for deployments                  | string | None         |   true   |
+| name                       | description                                                                     |  type  | default      | required |
+| :------------------------- | :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
+| image_name                 | Docker image name                                                               | string | None         |   true   |
+| gcp_project                | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
+| gcp_location               | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
+| cluster_name               | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
+| stage_cluster_name         | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
+| prod_github_environment    | The prod GitHub environment you'd like to use for deployments                   | string | None         |   true   |
+| stage\_ github_environment | The stage GitHub environment you'd like to use for deployments                  | string | None         |   true   |
 
 #### Input Secrets
 
@@ -159,8 +159,8 @@ mkdocs-material = "^8.5.1"
 
 </details>
 
-
 ## Terraform Lint, Plan, Deploy to GCP
+
 This [workflow](./.github/workflows/terraform.yml) will deploy a private terraform repo to GCP.
 
 [Example call to terraform workflow](./examples/terraform.yml)
@@ -168,20 +168,48 @@ This [workflow](./.github/workflows/terraform.yml) will deploy a private terrafo
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                | description                                                       | type    | default        | required | 
-|:-------------------:|:------------------------------------------------------------------|:-------:|:---------------|:--------:|
-| terraform_workspace | The terraform workspace you'd like to plan and deploy changes to  | string  | None           | true     |
-| github_environment  | The GitHub environment you'd like to use for deployments          | string  | None           | true     |
+|        name         | description                                                      |  type  | default | required |
+| :-----------------: | :--------------------------------------------------------------- | :----: | :------ | :------: |
+| terraform_workspace | The terraform workspace you'd like to plan and deploy changes to | string | None    |   true   |
+| github_environment  | The GitHub environment you'd like to use for deployments         | string | None    |   true   |
 
 #### Input Secrets
+
 These are the GitHub repo secrets you must create ahead of time!
 
-| name                             | description                                                                 | required  | 
-|:--------------------------------:|:----------------------------------------------------------------------------|:---------:|
-| SSH_KEY                          | SSH key used to access private repos during the build                       | true      |
-| GCP_TERRAFORM_SERVICE_ACCOUNT_KEY| service account credentials to deploy your terraform infra                  | true      |
-| TF_GITHUB_APP_ID                 | ID of App for authenticating via the Github Terraform provider              | false     |
-| TF_GITHUB_APP_INSTALLATION_ID    | Installation ID of App for authenticating via the Github Terraform provider | false     |
-| TF_GITHUB_APP_PEM_FILE           | PEM file of App for authenticating via the Github Terraform provider        | false     |
+|               name                | description                                                                 | required |
+| :-------------------------------: | :-------------------------------------------------------------------------- | :------: |
+|              SSH_KEY              | SSH key used to access private repos during the build                       |   true   |
+| GCP_TERRAFORM_SERVICE_ACCOUNT_KEY | service account credentials to deploy your terraform infra                  |   true   |
+|         TF_GITHUB_APP_ID          | ID of App for authenticating via the Github Terraform provider              |  false   |
+|   TF_GITHUB_APP_INSTALLATION_ID   | Installation ID of App for authenticating via the Github Terraform provider |  false   |
+|      TF_GITHUB_APP_PEM_FILE       | PEM file of App for authenticating via the Github Terraform provider        |  false   |
+
+</details>
+
+## Run CI and publish Python library
+
+This [workflow](./.github/workflows/python_library_ci.yml) will run precommit hooks and tests for a python project and publish the library.
+
+[Example workflow call](./examples/python_library_ci.yml)
+
+<details>
+  <summary>Workflow Input Variables</summary>
+
+|       name        | description                                                                        |  type   | default | required |
+| :---------------: | :--------------------------------------------------------------------------------- | :-----: | :------ | :------: |
+|     repo_uri      | Location of the python repository                                                  | string  | None    |   true   |
+| use_release_name  | Whether to set package version as the Github release naem                          | boolean | false   |  false   |
+|  python_version   | Python version to use when running CI                                              | string  | 3.10    |  false   |
+|  poetry_version   | Poetry version to run and build package                                            | string  | 1.5.1   |  false   |
+| working_directory | Working directory where source code is located. Default: current working directory | string  | .       |  false   |
+|  conda_env_file   | If Conda is used then the Conda environment file                                   | string  | None    |  false   |
+
+#### Input Secrets
+
+|              name              | description                                            | required |
+| :----------------------------: | :----------------------------------------------------- | :------: |
+| REGISTRY_RW_SERVICEACCOUNT_KEY | Service account credentials to publish to the registry |   true   |
+|    TEST_SERVICEACCOUNT_KEY     | Service account credentials to run the tests           |  false   |
 
 </details>

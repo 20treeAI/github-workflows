@@ -1,0 +1,95 @@
+name: CI pipeline for Python libraries
+
+on:
+  workflow_call:
+    inputs:
+      repo_uri:
+        description: 'URI of the python repo to publish artifacts to'
+        required: true
+        type: string
+      use_release_name:
+        description: 'Whether to use the release name as the package version'
+        default: false
+        required: false
+        type: boolean
+      python_version:
+        description: 'Python version for building lib'
+        default: '3.10'
+        required: false
+        type: string
+      poetry_version:
+        description: 'Poetry version for building lib'
+        default: '1.5.1'
+        required: false
+        type: string
+      working_directory:
+        description: 'Default working directory for the job'
+        default: '.'
+        required: false
+        type: string
+      conda_env_file:
+        description: 'If conda is used, the location of the conda environment file'
+        required: false
+        type: string
+    secrets:
+      REGISTRY_RW_SERVICEACCOUNT_KEY:
+        description: 'Service account key to access the registry for publishing artifacts'
+        required: true
+      TEST_SERVICEACCOUNT_KEY:
+        description: 'Service account key with access to resources needed for running tests'
+        required: false
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud_key.json
+    defaults:
+      run:
+        shell: bash -el {0}
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        if: inputs.conda_env_file == ''
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - uses: conda-incubator/setup-miniconda@v2
+        if: inputs.conda_env_file != ''
+        with:
+          activate-environment: ci-env
+          environment-file: ${{ inputs.conda_env_file }}
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '${{ inputs.poetry_version }}'
+
+      - name: Install package
+        run: |
+          echo "${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+          poetry self add keyrings-google-artifactregistry-auth==1.0.0
+          poetry install
+
+      - name: Linting
+        run: poetry run pre-commit run --files ${{ inputs.working_directory }}/**/*
+
+      - name: Run tests
+        run: |
+          echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+          poetry run pytest --disable-warnings
+
+      - name: Publish library
+        if: github.event_name == 'release'
+        run: |
+          if ${{ inputs.use_release_name }}; then
+            poetry version "${{ github.event.release.tag_name }}"
+          elif [ ${{ github.event.release.tag_name }} != $(poetry version --short) ]; then
+            echo "Release tag ${{ github.event.release.tag_name }} should match package version."
+            exit 1
+          fi
+          echo "${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+          poetry config repositories.custom ${{ inputs.repo_uri }}
+          poetry publish --build -r custom
