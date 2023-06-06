@@ -43,6 +43,9 @@ on:
       GCR_RW_SERVICEACCOUNT_KEY:
         description: 'GCR service account credentials to push/pull Docker images'
         required: true
+      DOCKER_BUILD_SERVICEACCOUNT_KEY:
+        description: 'Service account credentials for building Docker images'
+        required: false
 
 jobs:
   docker-build-test-push:
@@ -63,6 +66,10 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      - name: Import build key
+        run: 'echo "${{secrets.DOCKER_BUILD_SERVICEACCOUNT_KEY}}" | base64 -d > /tmp/build_key.json'
+        shell: bash -l {0}
 
       - if: ${{ inputs.artifacts_object_name }}
         name: Download artifacts
@@ -95,6 +102,7 @@ jobs:
           load: true
           tags: test-image
           ssh: default
+          secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
 
       - if: ${{ inputs.test_dagster }}
@@ -122,6 +130,7 @@ jobs:
           context: .
           push: ${{ !inputs.skip_image_push }}
           ssh: default
+          secret-files: BUILD_KEY=/tmp/build_key.json
           tags: |
             "${{ env.IMAGE_NAME }}:${{ github.sha }}"
             ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE_NAME, github.event.number) || '' }}
