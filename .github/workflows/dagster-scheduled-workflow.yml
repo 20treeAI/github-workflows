@@ -55,7 +55,7 @@ on:
 jobs:
   run-docker-workflow:
     # query our reusable docker build and push workflow
-    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@dagster-python-gar
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
     with:
       image_name: ${{ inputs.image_name }}
       branch: ${{ inputs.branch }}
