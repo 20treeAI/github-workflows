@@ -49,10 +49,11 @@ This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a
 
 These are the GitHub repo secrets you must create ahead of time!
 
-| name                      | description                                                | required |
-| :------------------------ | :--------------------------------------------------------- | :------: |
-| SSH_KEY                   | SSH key used to access private repos during the build      |   true   |
-| GCR_RW_SERVICEACCOUNT_KEY | GCR service account credentials to push/pull Docker images |   true   |
+| name                            | description                                                  | required |
+| :------------------------------ | :----------------------------------------------------------- | :------: |
+| SSH_KEY                         | SSH key used to access private repos during the build        |   true   |
+| GCR_RW_SERVICEACCOUNT_KEY       | GCR service account credentials to push/pull Docker images   |   true   |
+| DOCKER_BUILD_SERVICEACCOUNT_KEY | Service account credentials used when building Docker images |  false   |
 
 </details>
 
@@ -79,10 +80,11 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 
 These are the GitHub repo secrets you must create ahead of time!
 
-| name                      | description                                                | required |
-| :------------------------ | :--------------------------------------------------------- | :------: |
-| SSH_KEY                   | SSH key used to access private repos during the build      |   true   |
-| GCR_RW_SERVICEACCOUNT_KEY | GCR service account credentials to push/pull Docker images |   true   |
+| name                            | description                                                  | required |
+| :------------------------------ | :----------------------------------------------------------- | :------: |
+| SSH_KEY                         | SSH key used to access private repos during the build        |   true   |
+| GCR_RW_SERVICEACCOUNT_KEY       | GCR service account credentials to push/pull Docker images   |   true   |
+| DOCKER_BUILD_SERVICEACCOUNT_KEY | Service account credentials used when building Docker images |  false   |
 
 </details>
 
@@ -177,13 +179,13 @@ This [workflow](./.github/workflows/terraform.yml) will deploy a private terrafo
 
 These are the GitHub repo secrets you must create ahead of time!
 
-|               name                | description                                                                 | required |
-| :-------------------------------: | :-------------------------------------------------------------------------- | :------: |
-|              SSH_KEY              | SSH key used to access private repos during the build                       |   true   |
+| name                              | description                                                                 | required |
+| :-------------------------------- | :-------------------------------------------------------------------------- | :------: |
+| SSH_KEY                           | SSH key used to access private repos during the build                       |   true   |
 | GCP_TERRAFORM_SERVICE_ACCOUNT_KEY | service account credentials to deploy your terraform infra                  |   true   |
-|         TF_GITHUB_APP_ID          | ID of App for authenticating via the Github Terraform provider              |  false   |
-|   TF_GITHUB_APP_INSTALLATION_ID   | Installation ID of App for authenticating via the Github Terraform provider |  false   |
-|      TF_GITHUB_APP_PEM_FILE       | PEM file of App for authenticating via the Github Terraform provider        |  false   |
+| TF_GITHUB_APP_ID                  | ID of App for authenticating via the Github Terraform provider              |  false   |
+| TF_GITHUB_APP_INSTALLATION_ID     | Installation ID of App for authenticating via the Github Terraform provider |  false   |
+| TF_GITHUB_APP_PEM_FILE            | PEM file of App for authenticating via the Github Terraform provider        |  false   |
 
 </details>
 
