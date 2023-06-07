@@ -48,6 +48,9 @@ on:
       GCR_RW_SERVICEACCOUNT_KEY:
         description: 'GCR service account credentials to push/pull Docker images'
         required: true
+      DOCKER_BUILD_SERVICEACCOUNT_KEY:
+        description: 'Service account credentials for building Docker images'
+        required: false
 
 jobs:
   run-docker-workflow:
@@ -61,6 +64,7 @@ jobs:
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
+      DOCKER_BUILD_SERVICEACCOUNT_KEY: ${{ secrets.DOCKER_BUILD_SERVICEACCOUNT_KEY }}
 
   deploy-to-gke-stage:
     needs: run-docker-workflow
