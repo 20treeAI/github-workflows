@@ -31,12 +31,12 @@ jobs:
             ${{ runner.os }}-yarn-v2-
 
       - name: Install dependencies
-        uses: borales/actions-yarn@v3.0.0
+        uses: borales/actions-yarn@v4.2.0
         with:
           cmd: install # will run `yarn install` command
 
       - name: Build application
-        uses: borales/actions-yarn@v3.0.0
+        uses: borales/actions-yarn@v4.2.0
         with:
           cmd: build # will run `yarn build` command
         env: 
@@ -44,7 +44,7 @@ jobs:
           REACT_APP_MAPBOX_TOKEN_PROD: ${{ secrets.REACT_APP_MAPBOX_TOKEN_PROD }}
 
       - name: Test application
-        uses: borales/actions-yarn@v3.0.0
+        uses: borales/actions-yarn@v4.2.0
         with:
           cmd: test # will run `yarn test` command
 
