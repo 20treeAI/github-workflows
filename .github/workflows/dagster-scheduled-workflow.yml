@@ -108,7 +108,7 @@ jobs:
 
       - name: Re-tag stage image with prod
         run: |
-          gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
+          gcloud container images add-tag '${{ inputs.image_name }}:${{ github.sha }}' '${{ inputs.image_name }}:prod'
 
       - uses: 'google-github-actions/get-gke-credentials@v1'
         name: 'Get GKE cluster credentials'
