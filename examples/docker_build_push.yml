@@ -26,6 +26,8 @@ jobs:
       test_dagster: false
       # whether to skip image push (so that you can test image build without pushing)
       skip_image_push: true
+      # optional: Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues
+      docker_buildx_driver: 'docker-container'
     # you need to create these secrets in your repo ahead of time
     secrets:
       SSH_KEY: ${{ secrets.MY_SSH_KEY }}

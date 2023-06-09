@@ -19,6 +19,8 @@ jobs:
       # these need to be configured in your repo settings > environments
       prod_github_environment: prod
       stage_github_environment: stage
+      # optional: Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues
+      docker_buildx_driver: 'docker-container'
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}

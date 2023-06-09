@@ -13,6 +13,11 @@ on:
         default: 'main'
         required: false
         type: string
+      docker_buildx_driver:
+        description: 'Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues.'
+        required: false
+        default: "docker-container"
+        type: string
       gcp_project:
         description: 'GCP project where GKE/GCR are located for storing built Docker images'
         required: true
@@ -70,6 +75,7 @@ jobs:
       branch: ${{ inputs.branch }}
       gcp_project: ${{ inputs.gcp_project }}
       test_dagster: true
+      docker_buildx_driver: ${{ inputs.docker_buildx_driver }}
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
