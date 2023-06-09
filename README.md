@@ -11,18 +11,19 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                               | description                                                                     |  type  | default      | required |
-| :--------------------------------- | :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
-| image_name                         | Docker image name                                                               | string | None         |   true   |
-| branch                             | Git branch used for tagging incremental builds of the Docker image              | string | main         |  false   |
-| gcp_project                        | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
-| gcp_location                       | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
-| cluster_name                       | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
-| stage_cluster_name                 | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
-| stage_cluster_domain               | FQDN for URL for cluster running dagster                                        | string | None         |   true   |
-| stage_auth_domain                  | FQDN for authentication URL for cluster running dagster                         | string | None         |   true   |
-| stage_dagster_service_account_name | Development K8s cluster name on which Dagster jobs are deployed to              | string | None         |   true   |
-| dagster_version                    | Version of dagster to deploy helm chart for                                     | string | '0.15.10'    |  false   |
+| name                               | description                                                                     |  type  | default          | required |
+| :--------------------------------- | :------------------------------------------------------------------------------ | :----: | :--------------: | :------: |
+| image_name                         | Docker image name                                                               | string | None             |   true   |
+| branch                             | Git branch used for tagging incremental builds of the Docker image              | string | main             |  false   |
+| docker_buildx_driver               | Driver to use for docker buildx. Set to "docker" if needed.                     | string | docker-container |  false   |
+| gcp_project                        | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None             |   true   |
+| gcp_location                       | Location where GKE is located for storing built Docker images                   | string | europe-west4     |  false   |
+| cluster_name                       | K8s cluster name on which Dagster jobs are deployed to                          | string | None             |   true   |
+| stage_cluster_name                 | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None             |   true   |
+| stage_cluster_domain               | FQDN for URL for cluster running dagster                                        | string | None             |   true   |
+| stage_auth_domain                  | FQDN for authentication URL for cluster running dagster                         | string | None             |   true   |
+| stage_dagster_service_account_name | Development K8s cluster name on which Dagster jobs are deployed to              | string | None             |   true   |
+| dagster_version                    | Version of dagster to deploy helm chart for                                     | string | '0.15.10'        |  false   |
 
 </details>
   
@@ -35,15 +36,16 @@ This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                       | description                                                                     |  type  | default      | required |
-| :------------------------- | :------------------------------------------------------------------------------ | :----: | :----------- | :------: |
-| image_name                 | Docker image name                                                               | string | None         |   true   |
-| gcp_project                | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None         |   true   |
-| gcp_location               | Location where GKE is located for storing built Docker images                   | string | europe-west4 |  false   |
-| cluster_name               | K8s cluster name on which Dagster jobs are deployed to                          | string | None         |   true   |
-| stage_cluster_name         | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None         |   true   |
-| prod_github_environment    | The prod GitHub environment you'd like to use for deployments                   | string | None         |   true   |
-| stage\_ github_environment | The stage GitHub environment you'd like to use for deployments                  | string | None         |   true   |
+| name                       | description                                                                     |  type  | default          | required |
+| :------------------------- | :------------------------------------------------------------------------------ | :----: | :--------------: | :------: |
+| image_name                 | Docker image name                                                               | string | None             |   true   |
+| docker_buildx_driver       | Driver to use for docker buildx. Set to "docker" if needed.                     | string | docker-container |  false   |
+| gcp_project                | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None             |   true   |
+| gcp_location               | Location where GKE is located for storing built Docker images                   | string | europe-west4     |  false   |
+| cluster_name               | K8s cluster name on which Dagster jobs are deployed to                          | string | None             |   true   |
+| stage_cluster_name         | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None             |   true   |
+| prod_github_environment    | The prod GitHub environment you'd like to use for deployments                   | string | None             |   true   |
+| stage_github_environment   | The stage GitHub environment you'd like to use for deployments                  | string | None             |   true   |
 
 #### Input Secrets
 
@@ -65,15 +67,16 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 <details>
   <summary>Workflow Input Variables</summary>
 
-| name                  | description                                                                   |  type   | default  | required |
-| :-------------------- | :---------------------------------------------------------------------------- | :-----: | :------- | :------: |
-| image_name            | Docker image name                                                             | string  | None     |   true   |
-| branch                | Git branch used for tagging incremental builds of the Docker image            | string  | main     |   true   |
-| gcp_project           | GCP project where GCR is located for storing built Docker images              | string  | None     |   true   |
-| artifacts_object_name | Name of the artifacts object to pass to docker build job                      | string  | None     |  false   |
-| artifacts_path        | Path to use for the artifacts object                                          | string  | `build/` |  false   |
-| test_dagster          | whether or not to test docker image for dagster compatibility                 | boolean | false    |  false   |
-| skip_image_push       | whether to skip image push (so that you can test image build without pushing) | boolean | false    |  false   |
+| name                  | description                                                                   |  type   | default          | required |
+| :-------------------- | :---------------------------------------------------------------------------- | :-----: | :--------------: | :------: |
+| image_name            | Docker image name                                                             | string  | None             |   true   |
+| branch                | Git branch used for tagging incremental builds of the Docker image            | string  | main             |   true   |
+| docker_buildx_driver  | Driver to use for docker buildx. Set to "docker" if needed.                   | string  | docker-container |  false   |
+| gcp_project           | GCP project where GCR is located for storing built Docker images              | string  | None             |   true   |
+| artifacts_object_name | Name of the artifacts object to pass to docker build job                      | string  | None             |  false   |
+| artifacts_path        | Path to use for the artifacts object                                          | string  | `build/`         |  false   |
+| test_dagster          | whether or not to test docker image for dagster compatibility                 | boolean | false            |  false   |
+| skip_image_push       | whether to skip image push (so that you can test image build without pushing) | boolean | false            |  false   |
 
 #### Input Secrets
 
