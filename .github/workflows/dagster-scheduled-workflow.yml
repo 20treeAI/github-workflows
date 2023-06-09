@@ -96,6 +96,8 @@ jobs:
     needs: deploy-to-gke-stage
     runs-on: ubuntu-latest
     environment: ${{ inputs.prod_github_environment }}
+    env:
+      IMAGE_NAME: eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -108,7 +110,7 @@ jobs:
 
       - name: Re-tag stage image with prod
         run: |
-          gcloud container images add-tag '${{ inputs.image_name }}:${{ github.sha }}' '${{ inputs.image_name }}:prod'
+          gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
 
       - uses: 'google-github-actions/get-gke-credentials@v1'
         name: 'Get GKE cluster credentials'
