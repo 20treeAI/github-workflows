@@ -36,6 +36,12 @@ on:
         required: false
         default: false
         type: boolean
+      docker_buildx_driver:
+        description: 'Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues.'
+        required: false
+        default: "docker-container"
+        type: string
+
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
@@ -73,6 +79,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2.5.0
+        with:
+          driver: ${{ inputs.docker_buildx_driver }}
     
       - id: 'auth'
         uses: 'google-github-actions/auth@v1'
