@@ -38,8 +38,10 @@ jobs:
       stage_auth_domain: auth.mycooldomain.rocks
       # the service account that will be used by dagster in k8s
       stage_dagster_service_account_name: dagster-service-account
-      # Only required if you want a version other than 1.2.2
+      # optional: Only required if you want a version other than 1.2.2
       dagster_version: '1.2.2'
+      # optional: Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues
+      docker_buildx_driver: 'docker-container'
     # these must be created as github repo secrets
     secrets:
       SSH_KEY: ${{ secrets.BOT_SSH_KEY }}
