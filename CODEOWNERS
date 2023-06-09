@@ -1,6 +1,6 @@
 * @20treeAI/devops
-.github/workflows/dagster.yml @20treeAI/dataplatform @20treeAI/geoanalytics @20treeAI/web-product @20treeAI/trees
-.github/workflows/dagster-scheduled-workflow.yml @20treeAI/dataplatform @20treeAI/geoanalytics @20treeAI/web-product @20treeAI/trees
-.github/workflows/python_library_ci.yml @20treeAI/web-product @20treeAI/dataplatform @20treeAI/geoanalytics @20treeAI/trees
-.github/workflows/cloudrun_deploy_optional_sentry.yml @20treeAI/web-product @20treeAI/dataplatform
+.github/workflows/dagster.yml @20treeAI/data-platform @20treeAI/geoanalytics @20treeAI/web-product @20treeAI/trees
+.github/workflows/dagster-scheduled-workflow.yml @20treeAI/data-platform @20treeAI/geoanalytics @20treeAI/web-product @20treeAI/trees
+.github/workflows/python_library_ci.yml @20treeAI/web-product @20treeAI/data-platform @20treeAI/geoanalytics @20treeAI/trees
+.github/workflows/cloudrun_deploy_optional_sentry.yml @20treeAI/web-product @20treeAI/data-platform
 .github/workflows/yarn_build_test.yml @20treeAI/web-product logan@overstory.com
