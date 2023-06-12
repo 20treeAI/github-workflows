@@ -34,6 +34,11 @@ on:
         required: true
         default: 'stage'
         type: string
+      docker_registry_url:
+        description: 'Registry url for pushing and pulling Docker images'
+        default: 'eu.gcr.io'
+        required: false
+        type: string
     secrets:
       CLOUDRUN_DEPLOYER_SERVICEACCOUNT_KEY:
         description: 'Service Account key for the cloud run deployer'
@@ -45,7 +50,7 @@ on:
 jobs:
   deploy:
     env:
-      IMAGE_NAME: eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}
+      IMAGE_NAME: ${{ inputs.docker_registry_url }}/${{ inputs.gcp_project }}/${{ inputs.image_name }}
     name: Deploy to ${{ inputs.environment }}
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
@@ -62,10 +67,20 @@ jobs:
 
       - name: Tag Docker image
         if: ${{ inputs.image_tag }}
-        run: gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}'
+        run: |
+          if ${{ endsWith(inputs.docker_registry_url, 'docker.pkg.dev') }}; then
+            gcloud artifacts docker tags add '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}'
+          else
+            gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}'
+          fi
 
       - name: Tag Docker image with environment
-        run: gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.environment }}'
+        run: |
+          if ${{ endsWith(inputs.docker_registry_url, 'docker.pkg.dev') }}; then
+            gcloud artifacts docker tags add '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.environment }}'
+          else
+            gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:${{ inputs.environment }}'
+          fi
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1

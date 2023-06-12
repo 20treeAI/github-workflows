@@ -16,7 +16,7 @@ on:
       docker_buildx_driver:
         description: 'Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues.'
         required: false
-        default: "docker-container"
+        default: 'docker-container'
         type: string
       gcp_project:
         description: 'GCP project where GKE/GCR are located for storing built Docker images'
@@ -52,7 +52,11 @@ on:
         type: string
         default: '1.2.2'
         required: false
-
+      docker_registry_url:
+        description: 'Registry url for pushing and pulling Docker images'
+        default: 'eu.gcr.io'
+        required: false
+        type: string
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
@@ -76,6 +80,7 @@ jobs:
       gcp_project: ${{ inputs.gcp_project }}
       test_dagster: true
       docker_buildx_driver: ${{ inputs.docker_buildx_driver }}
+      docker_registry_url: ${{ inputs.docker_registry_url }}
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
@@ -174,7 +179,7 @@ jobs:
               deployments:
                 - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
                   image:
-                    repository: ${{ format('eu.gcr.io/{0}/{1}', inputs.gcp_project, inputs.image_name) }}
+                    repository: ${{ format('{0}/{1}/{2}', inputs.docker_registry_url, inputs.gcp_project, inputs.image_name) }}
                     tag: ${{ format('pr-{0}', github.event.number) }}
                     pullPolicy: Always
                   dagsterApiGrpcArgs:
