@@ -41,6 +41,12 @@ on:
       SENTRY_AUTH_TOKEN:
         description: 'Token for sentry auth'
         required: false
+      SENTRY_ORG:
+        description: 'Sentry organisation'
+        required: false
+      SENTRY_PROJECT:
+        description: 'Sentry project'
+        required: false
 
 jobs:
   deploy:
