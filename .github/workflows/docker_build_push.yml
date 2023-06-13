@@ -102,7 +102,7 @@ jobs:
 
       - if: ${{ inputs.test_dagster }}
         name: Build docker image
-        uses: docker/build-push-action@v4.0.0
+        uses: docker/build-push-action@v4.1.1
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
@@ -131,7 +131,7 @@ jobs:
       - name: Push docker image
         # if either a tag isn't provided, or if the run is scheduled (using automatic docker re-builds) for security
         if: ${{ !startsWith(github.ref, 'refs/tags/') || github.event_name == 'scheduled' }}
-        uses: docker/build-push-action@v4.0.0
+        uses: docker/build-push-action@v4.1.1
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
