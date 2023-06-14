@@ -57,8 +57,8 @@ on:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
         required: true
-      GAR_RW_SERVICEACCOUNT_KEY:
-        description: 'GAR service account credentials to push/pull Docker images'
+      GCR_RW_SERVICEACCOUNT_KEY:
+        description: 'Service account credentials to push/pull Docker images'
         required: true
       DOCKER_BUILD_SERVICEACCOUNT_KEY:
         description: 'Service account credentials for building Docker images'
