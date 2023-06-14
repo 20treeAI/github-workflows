@@ -65,10 +65,6 @@ jobs:
           df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf "${AGENT_TOOLSDIRECTORY}/CodeQL"
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /usr/share/swift
           df -h
 
       - name: Checkout
