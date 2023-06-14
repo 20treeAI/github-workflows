@@ -60,6 +60,17 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
+      - name: Free up space
+        run: |
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf "${AGENT_TOOLSDIRECTORY}/CodeQL"
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/share/swift
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v3
 
