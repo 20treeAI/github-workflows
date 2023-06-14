@@ -1,5 +1,5 @@
 ---
-name: Dagster workflow - build, test and push a docker image for dagster to GCR. Also supports deploying a developer environment to GKE for testing.
+name: Dagster workflow - build, test and push a docker image for dagster to GAR. Also supports deploying a developer environment to GKE for testing.
 
 on:
   workflow_call:
@@ -16,10 +16,10 @@ on:
       docker_buildx_driver:
         description: 'Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues.'
         required: false
-        default: "docker-container"
+        default: 'docker-container'
         type: string
       gcp_project:
-        description: 'GCP project where GKE/GCR are located for storing built Docker images'
+        description: 'GCP project where GKE/GAR are located for storing built Docker images'
         required: true
         type: string
       gcp_location:
@@ -57,8 +57,8 @@ on:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
         required: true
-      GCR_RW_SERVICEACCOUNT_KEY:
-        description: 'GCR service account credentials to push/pull Docker images'
+      GAR_RW_SERVICEACCOUNT_KEY:
+        description: 'GAR service account credentials to push/pull Docker images'
         required: true
       DOCKER_BUILD_SERVICEACCOUNT_KEY:
         description: 'Service account credentials for building Docker images'
@@ -174,7 +174,7 @@ jobs:
               deployments:
                 - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
                   image:
-                    repository: ${{ format('eu.gcr.io/{0}/{1}', inputs.gcp_project, inputs.image_name) }}
+                    repository: ${{ format('europe-west4-docker.pkg.dev/{0}/image/{1}', inputs.gcp_project, inputs.image_name) }}
                     tag: ${{ format('pr-{0}', github.event.number) }}
                     pullPolicy: Always
                   dagsterApiGrpcArgs:
