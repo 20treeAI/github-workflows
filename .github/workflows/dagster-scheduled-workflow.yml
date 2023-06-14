@@ -1,5 +1,5 @@
 ---
-name: Dagster scheduled workflow - build, test and push a docker image for dagster to GCR nightly
+name: Dagster scheduled workflow - build, test and push a docker image for dagster to GAR nightly
 
 on:
   workflow_call:
@@ -16,10 +16,10 @@ on:
       docker_buildx_driver:
         description: 'Driver to use for docker buildx. Set to docker from docker-container to help troubleshoot/fix issues.'
         required: false
-        default: "docker-container"
+        default: 'docker-container'
         type: string
       gcp_project:
-        description: 'GCP project where GKE/GCR are located for storing built Docker images'
+        description: 'GCP project where GKE/GAR are located for storing built Docker images'
         required: true
         type: string
       gcp_location:
@@ -51,7 +51,7 @@ on:
         description: 'SSH key used to access private repos during the build'
         required: true
       GCR_RW_SERVICEACCOUNT_KEY:
-        description: 'GCR service account credentials to push/pull Docker images'
+        description: 'Service account credentials to push/pull Docker images'
         required: true
       DOCKER_BUILD_SERVICEACCOUNT_KEY:
         description: 'Service account credentials for building Docker images'
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.prod_github_environment }}
     env:
-      IMAGE_NAME: eu.gcr.io/${{ inputs.gcp_project }}/${{ inputs.image_name }}
+      IMAGE_NAME: europe-west4-docker.pkg.dev/${{ inputs.gcp_project }}/image/${{ inputs.image_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -116,7 +116,7 @@ jobs:
 
       - name: Re-tag stage image with prod
         run: |
-          gcloud container images add-tag '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
+          gcloud artifacts docker tags add '${{ env.IMAGE_NAME }}:${{ github.sha }}' '${{ env.IMAGE_NAME }}:prod'
 
       - uses: 'google-github-actions/get-gke-credentials@v1'
         name: 'Get GKE cluster credentials'

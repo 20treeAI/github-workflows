@@ -4,7 +4,7 @@ This repo contains [reusable workflows](https://docs.github.com/en/actions/learn
 
 ## Dagster Build, Test, Deploy
 
-This [workflow](./.github/workflows/dagster.yml) will build a docker image and then test it before pushing it to GCR. Also supports creating development environment in stage cluster if you label a PR `dev-env`. The development enviornment will be removed if you remove the label or close the PR.
+This [workflow](./.github/workflows/dagster.yml) will build a docker image and then test it before pushing it to GAR. Also supports creating development environment in stage cluster if you label a PR `dev-env`. The development enviornment will be removed if you remove the label or close the PR.
 
 [Example call to dagster workflow](./examples/dagster.yml)
 
@@ -16,7 +16,7 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
 | image_name                         | Docker image name                                                               | string | None             |   true   |
 | branch                             | Git branch used for tagging incremental builds of the Docker image              | string | main             |  false   |
 | docker_buildx_driver               | Driver to use for docker buildx. Set to "docker" if needed.                     | string | docker-container |  false   |
-| gcp_project                        | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None             |   true   |
+| gcp_project                        | GCP project where GAR/GKE are located for storing/deploying built Docker images | string | None             |   true   |
 | gcp_location                       | Location where GKE is located for storing built Docker images                   | string | europe-west4     |  false   |
 | cluster_name                       | K8s cluster name on which Dagster jobs are deployed to                          | string | None             |   true   |
 | stage_cluster_name                 | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None             |   true   |
@@ -29,7 +29,7 @@ This [workflow](./.github/workflows/dagster.yml) will build a docker image and t
   
 ## Dagster Scheduled Rebuild and Deploy
 
-This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GCR first in stage and then will retag for production.
+This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a docker image and then test it before pushing it to GAR first in stage and then will retag for production.
 
 [Example call to dagster workflow](./examples/dagster_nightly_rebuild.yml)
 
@@ -40,7 +40,7 @@ This [workflow](./.github/workflows/dagster-scheduled-workflow.yml) will build a
 | :----------------------- | :------------------------------------------------------------------------------ | :----: | :--------------- | :------: |
 | image_name               | Docker image name                                                               | string | None             |   true   |
 | docker_buildx_driver     | Driver to use for docker buildx. Set to "docker" if needed.                     | string | docker-container |  false   |
-| gcp_project              | GCP project where GCR/GKE are located for storing/deploying built Docker images | string | None             |   true   |
+| gcp_project              | GCP project where GAR/GKE are located for storing/deploying built Docker images | string | None             |   true   |
 | gcp_location             | Location where GKE is located for storing built Docker images                   | string | europe-west4     |  false   |
 | cluster_name             | K8s cluster name on which Dagster jobs are deployed to                          | string | None             |   true   |
 | stage_cluster_name       | K8s stage cluster name on which Dagster jobs are deployed to                    | string | None             |   true   |
@@ -54,12 +54,12 @@ These are the GitHub repo secrets you must create ahead of time!
 | name                            | description                                                  | required |
 | :------------------------------ | :----------------------------------------------------------- | :------: |
 | SSH_KEY                         | SSH key used to access private repos during the build        |   true   |
-| GCR_RW_SERVICEACCOUNT_KEY       | GCR service account credentials to push/pull Docker images   |   true   |
+| GCR_RW_SERVICEACCOUNT_KEY       | Service account credentials to push/pull Docker images       |   true   |
 | DOCKER_BUILD_SERVICEACCOUNT_KEY | Service account credentials used when building Docker images |  false   |
 
 </details>
 
-## Docker Build and Push To GCR <small>(Optional: test with dagster)</small>
+## Docker Build and Push To Docker registry <small>(Optional: test with dagster)</small>
 
 This [workflow](./.github/workflows/docker_build_push.yml) will build and push a docker image. You can optionally pass in artifacts from previous jobs with the `artifacts_object_name` and `artifacts_path` input variables, to ensure the docker image gets built with context from a previous job.
 
@@ -73,7 +73,7 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 | image_name            | Docker image name                                                             | string  | None             |   true   |
 | branch                | Git branch used for tagging incremental builds of the Docker image            | string  | main             |   true   |
 | docker_buildx_driver  | Driver to use for docker buildx. Set to "docker" if needed.                   | string  | docker-container |  false   |
-| gcp_project           | GCP project where GCR is located for storing built Docker images              | string  | None             |   true   |
+| gcp_project           | GCP project where GAR is located for storing built Docker images              | string  | None             |   true   |
 | artifacts_object_name | Name of the artifacts object to pass to docker build job                      | string  | None             |  false   |
 | artifacts_path        | Path to use for the artifacts object                                          | string  | `build/`         |  false   |
 | test_dagster          | whether or not to test docker image for dagster compatibility                 | boolean | false            |  false   |
@@ -86,7 +86,7 @@ These are the GitHub repo secrets you must create ahead of time!
 | name                            | description                                                  | required |
 | :------------------------------ | :----------------------------------------------------------- | :------: |
 | SSH_KEY                         | SSH key used to access private repos during the build        |   true   |
-| GCR_RW_SERVICEACCOUNT_KEY       | GCR service account credentials to push/pull Docker images   |   true   |
+| GCR_RW_SERVICEACCOUNT_KEY       | GAR service account credentials to push/pull Docker images   |   true   |
 | DOCKER_BUILD_SERVICEACCOUNT_KEY | Service account credentials used when building Docker images |  false   |
 
 </details>
@@ -102,7 +102,7 @@ This [workflow](./.github/workflows/cloudrun_deploy_optional_sentry.yml) will de
 
 | name           | description                                                      |  type   | default        | required |
 | :------------- | :--------------------------------------------------------------- | :-----: | :------------- | :------: |
-| gcp_project    | GCP project where GCR is located for storing built Docker images | string  | None           |   true   |
+| gcp_project    | GCP project where GAR is located for storing built Docker images | string  | None           |   true   |
 | region         | Region to deploy cloudrun app and docker image                   | string  | `europe-west4` |  false   |
 | image_name     | Docker image name                                                | string  | None           |   true   |
 | image_tag      | Name of Tag for Docker image                                     | string  | None           |  false   |
