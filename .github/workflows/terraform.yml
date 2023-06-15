@@ -87,21 +87,28 @@ jobs:
           TF_VAR_github_app_id: ${{ secrets.TF_GITHUB_APP_ID }}
           TF_VAR_github_app_installation_id: ${{ secrets.TF_GITHUB_APP_INSTALLATION_ID }}
           TF_VAR_github_app_pem_file: ${{ secrets.TF_GITHUB_APP_PEM_FILE }}
-        # Enable no-color for PRs since raw output is shown in PR comment
-        run: terraform plan ${{ github.event_name == 'pull_request' && '-no-color' || '' }} -input=false -lock=${{ github.event_name != 'push' }}
+        run: |
+          echo "Plan failed." > ${GITHUB_WORKSPACE}/plan.out
+          terraform plan -input=false -lock=${{ github.event_name != 'push' }} -out=plan.tmp
+          terraform show -no-color plan.tmp > ${GITHUB_WORKSPACE}/plan.out
 
       # add a summary with the ci status
       - name: Post Plan Step Summaries
         uses: actions/github-script@v6
         if: always()
-        env:
-          PLAN: '${{ steps.plan.outputs.stdout }}'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             function getTestRecord(test, step_outcome) {
               return `| ${test} | ${step_outcome === 'success' ? ':white_check_mark:' : ':x:'} |`;
             }
+
+            const MAX_PLAN_LENGTH = 65000
+            const runLink = `<a href="${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}">Actions</a>`
+            const fs = require('fs')
+            const planFile = fs.readFileSync('plan.out', 'utf8')
+            const plan = planFile.length > MAX_PLAN_LENGTH ? `${planFile.substring(0, MAX_PLAN_LENGTH)}...` : planFile
+            const fullPlanLink =  `${planFile.length > MAX_PLAN_LENGTH ? "Output is too long and was truncated. " : ""}You can view the full plan in ${runLink}.`
 
             const output = `### :rocket: Test summary - \`${{ inputs.terraform_directory }}\` ${{ inputs.terraform_workspace }}
             | Step                          | Result                        |
@@ -114,10 +121,11 @@ jobs:
             <details><summary>Show Plan</summary>
 
             \`\`\`terraform\n
-            ${process.env.PLAN}
+            ${plan}
             \`\`\`
 
-            </details>`;
+            </details>
+            ${fullPlanLink}`;
 
             await core.summary.addRaw(output).write()
 
