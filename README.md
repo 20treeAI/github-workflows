@@ -162,7 +162,7 @@ mkdocs-material = "^8.5.1"
 | name           | description                      |  type  | default | required |
 | :------------- | :------------------------------- | :----: | :------ | :------: |
 | python_version | version of python you'd like use | string | '3.10'  |  false   |
-| poetry_version | version of poetry you'd like use | string | '1.4.1' |  false   |
+| poetry_version | version of poetry you'd like use | string | '1.5.1' |  false   |
 
 </details>
 

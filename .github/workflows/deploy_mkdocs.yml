@@ -11,7 +11,7 @@ on:
       poetry_version:
         description: 'Exact version of poetry you would like use'
         required: false
-        default: '1.4.1'
+        default: '1.5.1'
         type: string
 jobs:
   deploy:
@@ -26,9 +26,9 @@ jobs:
           python-version: ${{ inputs.python_version }}
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+        uses: snok/install-poetry@v1
         with:
-          poetry-version: ${{ inputs.poetry_version }}
+          version: '${{ inputs.poetry_version }}'
 
       - name: Install mkdocs as dependency
         run: poetry install --only docs
