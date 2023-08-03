@@ -147,12 +147,12 @@ jobs:
               runMonitoring:
                 enabled: true
                 startTimeoutSeconds: 300
-            dagsterWebserver:
+            dagit:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
               livenessProbe:
                 httpGet:
-                  path: "/server_info"
+                  path: "/dagit_info"
                   port: 80
                 periodSeconds: 20
                 timeoutSeconds: 3
@@ -161,7 +161,7 @@ jobs:
               startupProbe:
                 enabled: true
                 httpGet:
-                  path: "/server_info"
+                  path: "/dagit_info"
                   port: 80
                 periodSeconds: 20
                 timeoutSeconds: 3
@@ -197,7 +197,7 @@ jobs:
                   auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
                   auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
                   auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
-              dagsterWebserver:
+              dagit:
                 host: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
                 path: "/"
                 tls:
