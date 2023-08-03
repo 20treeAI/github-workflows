@@ -146,7 +146,7 @@ jobs:
                 cloud.google.com/gke-nodepool: core
               runMonitoring:
                 enabled: true
-                startTimeoutSeconds: 300
+                startTimeoutSeconds: 600
             dagit:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
