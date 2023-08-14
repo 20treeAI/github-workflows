@@ -110,6 +110,7 @@ jobs:
           load: true
           tags: test-image
           ssh: default
+          build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
 
@@ -138,6 +139,7 @@ jobs:
           context: .
           push: ${{ !inputs.skip_image_push }}
           ssh: default
+          build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           tags: |
             "${{ env.IMAGE_NAME }}:${{ github.sha }}"
