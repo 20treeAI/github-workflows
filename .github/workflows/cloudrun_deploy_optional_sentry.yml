@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # actions/checkout MUST come before auth, ref: github.com/google-github-actions/auth
-      - uses: 'actions/checkout@v3'
+      - uses: 'actions/checkout@v4'
 
       # required for gcloud docker command and deployment to Cloud Run
       - id: 'auth'
