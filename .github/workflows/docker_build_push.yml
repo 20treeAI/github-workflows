@@ -78,7 +78,7 @@ jobs:
         shell: bash -l {0}
 
       - name: Import SSH key
-        run: 'echo "${{secrets.SSH_KEY_BASE64}}" | base64 -d > /tmp/ssh_key'
+        run: 'echo "${{secrets.SSH_KEY}}" | base64 -d > /tmp/ssh_key'
         shell: bash -l {0}
     
       - if: ${{ inputs.artifacts_object_name }}
