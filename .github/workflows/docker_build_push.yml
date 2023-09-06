@@ -116,9 +116,9 @@ jobs:
           ssh: default
           build-args: |
             GIT_COMMIT=${{ github.sha }}
-          secret-files: |
-            BUILD_KEY=/tmp/build_key.json
-            SSH_KEY=/tmp/ssh_key
+          secrets: |
+            SSH_KEY=${{ secrets.SSH_KEY }}
+          secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
 
       - if: ${{ inputs.test_dagster }}
