@@ -67,7 +67,6 @@ jobs:
         shell: bash -l {0}
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-          SSH_KEY_ENV: ${{ secrets.SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -111,7 +110,7 @@ jobs:
           load: true
           tags: test-image
           ssh: default
-          build-args: "GIT_COMMIT=${{ github.sha }}"
+          build-args: "GIT_COMMIT=${{ github.sha }},SSH_KEY=${{ secrets.SSH_KEY }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
 
