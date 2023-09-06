@@ -110,7 +110,9 @@ jobs:
           load: true
           tags: test-image
           ssh: default
-          build-args: "GIT_COMMIT=${{ github.sha }},SSH_KEY=${{ secrets.SSH_KEY }}"
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            SSH_KEY_BASE64=${{ secrets.SSH_KEY | base64 }}
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
 
