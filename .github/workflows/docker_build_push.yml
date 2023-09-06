@@ -78,7 +78,7 @@ jobs:
         shell: bash -l {0}
 
       - name: Import SSH key
-        run: 'echo "${{secrets.SSH_KEY}}" | base64 -d > /tmp/ssh_key'
+        run: echo "SSH_KEY_BASE64=$(echo '${{secrets.SSH_KEY}}' | base64)" >> $GITHUB_ENV
         shell: bash -l {0}
     
       - if: ${{ inputs.artifacts_object_name }}
@@ -116,8 +116,7 @@ jobs:
           ssh: default
           build-args: |
             GIT_COMMIT=${{ github.sha }}
-          secrets: |
-            SSH_KEY=${{ secrets.SSH_KEY }}
+            SSH_KEY_BASE64=${{ env.SSH_KEY_BASE64 }} 
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
 
