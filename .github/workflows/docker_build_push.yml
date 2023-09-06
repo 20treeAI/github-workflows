@@ -77,6 +77,10 @@ jobs:
         run: 'echo "${{secrets.DOCKER_BUILD_SERVICEACCOUNT_KEY}}" | base64 -d > /tmp/build_key.json'
         shell: bash -l {0}
 
+      - name: Import SSH key
+        run: 'echo "${{secrets.SSH_KEY_BASE64}}" | base64 -d > /tmp/ssh_key'
+        shell: bash -l {0}
+    
       - if: ${{ inputs.artifacts_object_name }}
         name: Download artifacts
         uses: actions/download-artifact@v3
@@ -112,8 +116,9 @@ jobs:
           ssh: default
           build-args: |
             GIT_COMMIT=${{ github.sha }}
-            SSH_KEY_BASE64=${{ secrets.SSH_KEY | base64 }}
-          secret-files: BUILD_KEY=/tmp/build_key.json
+          secret-files: |
+            BUILD_KEY=/tmp/build_key.json
+            SSH_KEY=/tmp/ssh_key
           provenance: false
 
       - if: ${{ inputs.test_dagster }}
