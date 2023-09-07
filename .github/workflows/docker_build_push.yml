@@ -80,6 +80,9 @@ jobs:
       - name: Import SSH key
         run: 'echo "${{secrets.SSH_KEY}}" > /tmp/ssh_key'
         shell: bash -l {0}
+        
+      - name: Check SSH Key Size
+        run: du -hs /tmp/ssh_key
     
       - if: ${{ inputs.artifacts_object_name }}
         name: Download artifacts
