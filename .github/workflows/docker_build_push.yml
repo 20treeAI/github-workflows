@@ -78,7 +78,7 @@ jobs:
         shell: bash -l {0}
 
       - name: Import SSH key
-        run: echo "SSH_KEY_BASE64=$(echo '${{secrets.SSH_KEY}}' | base64)" >> $GITHUB_ENV
+        run: 'echo "${{secrets.SSH_KEY}}" | base64 -d > /tmp/ssh_key'
         shell: bash -l {0}
     
       - if: ${{ inputs.artifacts_object_name }}
@@ -116,8 +116,9 @@ jobs:
           ssh: default
           build-args: |
             GIT_COMMIT=${{ github.sha }}
-            SSH_KEY_BASE64=${{ env.SSH_KEY_BASE64 }} 
-          secret-files: BUILD_KEY=/tmp/build_key.json
+          secret-files: |
+            BUILD_KEY=/tmp/build_key.json
+            SSH_KEY=/tmp/ssh_key
           provenance: false
 
       - if: ${{ inputs.test_dagster }}
@@ -146,7 +147,9 @@ jobs:
           push: ${{ !inputs.skip_image_push }}
           ssh: default
           build-args: "GIT_COMMIT=${{ github.sha }}"
-          secret-files: BUILD_KEY=/tmp/build_key.json
+          secret-files: |
+            BUILD_KEY=/tmp/build_key.json
+            SSH_KEY=/tmp/ssh_key
           tags: |
             "${{ env.IMAGE_NAME }}:${{ github.sha }}"
             ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE_NAME, github.event.number) || '' }}
