@@ -31,6 +31,11 @@ on:
         description: 'If conda is used, the location of the conda environment file'
         required: false
         type: string
+      provide_ssh_access:
+        description: 'Set to true if the project has packages installed using ssh'
+        default: false
+        required: false
+        type: bool
     secrets:
       REGISTRY_RW_SERVICEACCOUNT_KEY:
         description: 'Service account key to access the registry for publishing artifacts'
@@ -44,6 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud_key.json
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     defaults:
       run:
         shell: bash -el {0}
@@ -51,8 +57,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Setup SSH Keys and known_hosts
         if: inputs.conda_env_file == ''
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.OVERSTORY_BOT_SSH_KEY }}"
+
+      - uses: actions/setup-python@v4
+        if: inputs.provide_ssh_access
         with:
           python-version: ${{ inputs.python_version }}
 
