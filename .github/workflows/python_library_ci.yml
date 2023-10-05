@@ -60,14 +60,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup SSH Keys and known_hosts
-        if: inputs.provide_ssh_access
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.OVERSTORY_BOT_SSH_KEY }}"
-
       - uses: actions/setup-python@v4
         if: inputs.conda_env_file == ''
         with:
@@ -78,6 +70,15 @@ jobs:
         with:
           activate-environment: ci-env
           environment-file: ${{ inputs.conda_env_file }}
+
+      - name: Setup SSH Keys and known_hosts
+        if: inputs.provide_ssh_access
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.OVERSTORY_BOT_SSH_KEY }}"
+
 
       - name: Install poetry
         uses: snok/install-poetry@v1
