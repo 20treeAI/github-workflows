@@ -43,7 +43,7 @@ on:
       TEST_SERVICEACCOUNT_KEY:
         description: 'Service account key with access to resources needed for running tests'
         required: false
-      OVERSTORY_BOT_SSH_KEY:
+      SSH_KEY:
         description: 'SSH key to access packages installed using ssh'
         required: false
 
@@ -77,7 +77,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.OVERSTORY_BOT_SSH_KEY }}"
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
 
       - name: Install poetry
