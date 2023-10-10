@@ -31,6 +31,11 @@ on:
         description: 'If conda is used, the location of the conda environment file'
         required: false
         type: string
+      provide_ssh_access:
+        description: 'Set to true if the project has packages installed using ssh'
+        default: false
+        required: false
+        type: boolean
     secrets:
       REGISTRY_RW_SERVICEACCOUNT_KEY:
         description: 'Service account key to access the registry for publishing artifacts'
@@ -38,12 +43,16 @@ on:
       TEST_SERVICEACCOUNT_KEY:
         description: 'Service account key with access to resources needed for running tests'
         required: false
+      SSH_KEY:
+        description: 'SSH key to access packages installed using ssh'
+        required: false
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     env:
       GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud_key.json
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     defaults:
       run:
         shell: bash -el {0}
@@ -61,6 +70,14 @@ jobs:
         with:
           activate-environment: ci-env
           environment-file: ${{ inputs.conda_env_file }}
+
+      - name: Setup SSH Keys and known_hosts
+        if: inputs.provide_ssh_access
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
       - name: Install poetry
         uses: snok/install-poetry@v1
