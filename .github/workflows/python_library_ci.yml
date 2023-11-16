@@ -68,6 +68,8 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         if: inputs.conda_env_file != ''
         with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
           activate-environment: ci-env
           environment-file: ${{ inputs.conda_env_file }}
 
