@@ -114,7 +114,7 @@ jobs:
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: ${{ inputs.docker_buildx_driver == 'docker-container' && 'type=gha,mode=max' || '' }}
 
       - if: ${{ inputs.test_dagster }}
         name: Find repository.py file
