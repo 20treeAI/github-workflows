@@ -115,6 +115,7 @@ jobs:
           provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          push: false
 
       - if: ${{ inputs.test_dagster }}
         name: Find repository.py file
