@@ -151,10 +151,9 @@ jobs:
       - if: inputs.check_sdk_and_package_version_match
         name: Ensure SDK and package versions match
         run: |
-          VERSION1=$(poetry version -s)
-          echo "SDK_DIRECTORY=${{ inputs.repository_name }}_sdk" | tr '-' '_' >> $GITHUB_ENV
-          VERSION2=$(cd ${{ env.SDK_DIRECTORY }} && poetry version -s)
-          if [ "$VERSION1" != "$VERSION2" ]; then
+          PACKAGE_VERSION=$(poetry version -s)
+          SDK_VERSION=$(cd $(echo ${{ inputs.repository_name }}"_sdk" | tr '-' '_') && poetry version -s)
+          if [ "$PACKAGE_VERSION" != "$SDK_VERSION" ]; then
             echo "Package and SDK versions do not match"
             exit 1
           fi
