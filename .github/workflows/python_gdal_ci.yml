@@ -145,10 +145,12 @@ jobs:
         run: pre-commit run --all
 
       # TESTS Stage 1 and Stage 2
+      - name: Import GCS key for tests
+        run: echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+
       - if: inputs.test_stage_1_should_run
         name: Run Stage 1 Tests
         run: | 
-          echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
           if [ ${{ inputs.test_stage_1_use_pytest_xdist }} ]; then
             pytest --durations=0 -m '${{ inputs.test_stage_1_conditions }}' -n auto --disable-warnings
           else
@@ -158,7 +160,6 @@ jobs:
       - if: (inputs.test_stage_2_should_run) && (inputs.test_stage_2_run_in_branch || github.event_name == 'push')
         name: Run Stage 2 Tests
         run: | 
-          echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
           if [ ${{ inputs.test_stage_2_use_pytest_xdist }} ]; then
             pytest --durations=0 -m '${{ inputs.test_stage_2_conditions }}' -n auto --disable-warnings
           else
