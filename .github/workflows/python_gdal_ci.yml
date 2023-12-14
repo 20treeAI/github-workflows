@@ -134,8 +134,8 @@ jobs:
       - if: github.event_name == 'push'
         name: Run slow tests
         run: | 
-          if ${{ inputs.use_pytest_xdist }}; then
+          if [ ${{ inputs.use_pytest_xdist }} ]; then
             pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' -n auto --disable-warnings
-          else; then
+          else
             pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' --disable-warnings
           fi
