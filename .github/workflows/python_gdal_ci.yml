@@ -46,9 +46,17 @@ on:
         required: false
         type: string
     secrets:
-      REGISTRY_RW_SERVICEACCOUNT_KEY:
+      GAR_RW_PYTHON_SERVICEACCOUNT_KEY:
         description: 'Service account key to access the registry for publishing artifacts'
         required: true
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: true
+      TEST_SERVICEACCOUNT_KEY:
+        description: 'Service account key with access to resources needed for running tests'
+        required: false
+
+
 
 jobs:
   ci:
@@ -69,7 +77,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.OVERSTORY_BOT_SSH_KEY }}"
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
       # CONDA
       - uses: conda-incubator/setup-miniconda@v2
@@ -112,7 +120,7 @@ jobs:
         run: pre-commit run --all
 
       - name: Import GCS key for tests
-        run: echo "${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "${{ secrets.GAR_RW_PYTHON_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
 
       # TESTS (FAST and SLOW)
       - name: Run fast tests
