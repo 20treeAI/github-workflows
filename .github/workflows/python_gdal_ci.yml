@@ -126,15 +126,15 @@ jobs:
       - name: Run fast tests
         run: | 
           if ${{ inputs.use_pytext_xdist }}; then
-            pytest --durations=0 -m '"${{ inputs.pytest_fast_conditions }}"' -n auto --disable-warnings
-          else
-            pytest --durations=0 -m '"${{ inputs.pytest_fast_conditions }}"' --disable-warnings
+            pytest --durations=0 -m '${{ inputs.pytest_fast_conditions }}' -n auto --disable-warnings
+          else; then
+            pytest --durations=0 -m '${{ inputs.pytest_fast_conditions }}' --disable-warnings
           fi
       - if: github.event_name == 'push'
         name: Run slow tests
         run: | 
           if ${{ inputs.use_pytext_xdist }}; then
             pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' -n auto --disable-warnings
-          else
+          else; then
             pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' --disable-warnings
           fi
