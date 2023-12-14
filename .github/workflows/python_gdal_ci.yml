@@ -127,7 +127,7 @@ jobs:
         run: | 
           if ${{ inputs.use_pytest_xdist }}; then
             pytest --durations=0 -m '${{ inputs.pytest_fast_conditions }}' -n auto --disable-warnings
-          else then
+          else; then
             pytest --durations=0 -m '${{ inputs.pytest_fast_conditions }}' --disable-warnings
           fi
 
@@ -136,6 +136,6 @@ jobs:
         run: | 
           if ${{ inputs.use_pytest_xdist }}; then
             pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' -n auto --disable-warnings
-          else then
+          else; then
             pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' --disable-warnings
           fi
