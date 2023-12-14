@@ -1,0 +1,132 @@
+name: CI pipeline for GDAL Python repositories 
+
+## Assumptions
+# 1. conda env file is called env.yml
+# 2. poetry (pyproject.toml and poetry.lock files)
+# 3. repository name = conda env name = package name
+# 4. uses pre-commit hooks
+# 5. slow tests are run on push to main only, not in every CI run
+# 6. 
+
+on:
+  workflow_call:
+    inputs:
+      repository_name:
+        description: 'Name of conda environment, python package'
+        required: true
+        type: string
+      gdal_version:
+        description: 'version of GDAL being used e.g. 3.6.4'
+        default: '3.6.4'
+        required: false
+        type: string
+      python_version:
+        description: 'Python version for building lib'
+        default: '3.10.6'
+        required: false
+        type: string
+      poetry_version:
+        description: 'Poetry version for building lib'
+        default: '1.5.1'
+        required: false
+        type: string
+      use_pytest_xdist:
+        description: 'Set to true of pytest-xdist is installed to run tests in parallel'
+        default: false
+        required: false
+        type: boolean
+      pytest_fast_conditions:
+        description: 'Conditions determining when fast tests should be run using pytest markers'
+        default: "not slow"
+        required: false
+        type: string
+      pytest_slow_conditions:
+        description: 'Conditions determining when slow tests should be run using pytest markers'
+        default: "slow"
+        required: false
+        type: string
+    secrets:
+      REGISTRY_RW_SERVICEACCOUNT_KEY:
+        description: 'Service account key to access the registry for publishing artifacts'
+        required: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud_key.json
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # NOTE: This must run before the env restore, changed LD_LIBRARY_PATH can cause OpenSSL mismatch errors
+      - name: Setup SSH Keys and known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.OVERSTORY_BOT_SSH_KEY }}"
+
+      # CONDA
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: ${{ inputs.repository_name }}
+
+        # Save the conda environment to cache.
+        # NOTE automatically invalidates cache monthly OR on any change of the env.yml or poetry.lock files
+        # Edit this portion to adjust cache "lifetime"
+      - name: Save date for cache keys
+        run: echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV 
+      - name: Cache Conda env
+        uses: actions/cache@v3
+        id: conda-env-cache
+        with:
+          path: /usr/share/miniconda3/envs/${{ inputs.repository_name }}
+          key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
+
+        # Only install conda packages if the cache is invalidated
+      - name: Install conda packages
+        if: steps.conda-env-cache.outputs.cache-hit != 'true'
+        run: mamba env update -n ${{ inputs.repository_name }} -f env.yml
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ inputs.poetry_version }}
+
+      # POETRY INSTALL
+      - name: Install package
+        run: |
+          echo "${{ secrets.GAR_RW_PYTHON_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+          poetry self add keyrings-google-artifactregistry-auth==1.0.0
+          poetry install
+
+      # FORMATTING
+      - name: Run Pre-commit Hooks
+        run: pre-commit run --all
+
+      - name: Import GCS key for tests
+        run: echo "${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+
+      # TESTS (FAST and SLOW)
+      - name: Run fast tests
+        run: | 
+          if ${{ inputs.use_pytext_xdist }}; then
+            pytest --durations=0 -m '"${{ inputs.pytest_fast_conditions }}"' -n auto --disable-warnings
+          else
+            pytest --durations=0 -m '"${{ inputs.pytest_fast_conditions }}"' --disable-warnings
+          fi
+      - if: github.event_name == 'push'
+        name: Run slow tests
+        run: | 
+          if ${{ inputs.use_pytext_xdist }}; then
+            pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' -n auto --disable-warnings
+          else
+            pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' --disable-warnings
+          fi
