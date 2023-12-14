@@ -5,12 +5,13 @@ name: CI pipeline for GDAL Python repositories
 # 2. poetry (pyproject.toml and poetry.lock files)
 # 3. repository name = conda env name = package name
 # 4. uses pre-commit hooks
-# 5. slow tests are run on push to main only, not in every CI run
-# 6. 
+# 5. two testing "stages": e.g. stage 1 = fast tests, stage 2 = slow tests, or stage 1 = parallel tests, stage 2 = dask tests
 
 on:
   workflow_call:
     inputs:
+
+      # Testing arguments for two-stage tests
       repository_name:
         description: 'Name of conda environment, python package'
         required: true
@@ -30,21 +31,45 @@ on:
         default: '1.5.1'
         required: false
         type: string
-      use_pytest_xdist:
-        description: 'Set to true of pytest-xdist is installed to run tests in parallel'
+      
+      # Testing arguments for two-stage tests 
+      test_stage_1_should_run:
+        description: 'Set to true to use the subsequent settings to run tests'
+        default: true
+        required: true
+        type: boolean
+      test_stage_1_use_pytest_xdist:
+        description: 'Set to true to use pytest-xdist to run stage 1 tests in parallel (expects pytext-xdist to be installed)'
         default: false
         required: false
         type: boolean
-      pytest_fast_conditions:
-        description: 'Conditions determining when fast tests should be run using pytest markers'
-        default: "not slow"
+      test_stage_1_conditions:
+        description: 'Pytest marker conditions for stage 1 tests'
+        default: ""
         required: false
         type: string
-      pytest_slow_conditions:
-        description: 'Conditions determining when slow tests should be run using pytest markers'
+
+      test_stage_2_should_run:
+        description: 'Set to true to use the subsequent settings to run tests'
+        default: false
+        required: false
+        type: boolean
+      test_stage_2_use_pytest_xdist:
+        description: 'Set to true if pytest-xdist to run stage 2 tests in parallel (expects pytext-xdist to be installed)'
+        default: false
+        required: false
+        type: boolean
+      test_stage_2_conditions:
+        description: 'Pytest marker conditions for stage 2 tests'
         default: "slow"
         required: false
         type: string
+      test_stage_2_run_in_branch:
+        description: 'Set to true if tests should be run for each PR iteration, or False for tests to only run when merged to main'
+        default: true
+        required: false
+        type: boolean
+
     secrets:
       GAR_RW_PYTHON_SERVICEACCOUNT_KEY:
         description: 'Service account key to access the registry for publishing artifacts'
@@ -119,22 +144,23 @@ jobs:
       - name: Run Pre-commit Hooks
         run: pre-commit run --all
 
-      # TESTS (FAST and SLOW)
-      - name: Run fast tests
+      # TESTS Stage 1 and Stage 2
+      - if: inputs.test_stage_1_should_run
+        name: Run Stage 1 Tests
         run: | 
           echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          if [ ${{ inputs.use_pytest_xdist }} ]; then
-            pytest --durations=0 -m '${{ inputs.pytest_fast_conditions }}' -n auto --disable-warnings
+          if [ ${{ inputs.test_stage_1_use_pytest_xdist }} ]; then
+            pytest --durations=0 -m '${{ inputs.test_stage_1_conditions }}' -n auto --disable-warnings
           else
-            pytest --durations=0 -m '${{ inputs.pytest_fast_conditions }}' --disable-warnings
+            pytest --durations=0 -m '${{ inputs.test_stage_1_conditions }}' --disable-warnings
           fi
 
-      - if: github.event_name == 'push'
-        name: Run slow tests
+      - if: inputs.test_stage_2_should_run && github.event_name == 'push'
+        name: Run Stage 2 Tests
         run: | 
           echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          if [ ${{ inputs.use_pytest_xdist }} ]; then
-            pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' -n auto --disable-warnings
+          if [ ${{ inputs.test_stage_2_use_pytest_xdist }} ]; then
+            pytest --durations=0 -m '"${{ inputs.test_stage_2_conditions }}"' -n auto --disable-warnings
           else
-            pytest --durations=0 -m '"${{ inputs.pytest_slow_conditions }}"' --disable-warnings
+            pytest --durations=0 -m '"${{ inputs.test_stage_2_conditions }}"' --disable-warnings
           fi
