@@ -34,9 +34,9 @@ on:
       
       # Testing arguments for two-stage tests 
       test_stage_1_should_run:
-        description: 'Set to true to use the subsequent settings to run tests'
+        description: 'Set to true to run the stage 1 tests as defined below'
         default: true
-        required: true
+        required: false
         type: boolean
       test_stage_1_use_pytest_xdist:
         description: 'Set to true to use pytest-xdist to run stage 1 tests in parallel (expects pytext-xdist to be installed)'
@@ -44,13 +44,13 @@ on:
         required: false
         type: boolean
       test_stage_1_conditions:
-        description: 'Pytest marker conditions for stage 1 tests'
-        default: ""
+        description: 'Pytest marker conditions for stage 1 tests to include/exclude tests'
+        default: ''
         required: false
         type: string
 
       test_stage_2_should_run:
-        description: 'Set to true to use the subsequent settings to run tests'
+        description: 'Set to true to run the stage 2 tests as defined below'
         default: false
         required: false
         type: boolean
@@ -60,12 +60,12 @@ on:
         required: false
         type: boolean
       test_stage_2_conditions:
-        description: 'Pytest marker conditions for stage 2 tests'
-        default: "slow"
+        description: 'Pytest marker conditions for stage 2 tests to include/exclude tests'
+        default: 'slow'
         required: false
         type: string
       test_stage_2_run_in_branch:
-        description: 'Set to true if tests should be run for each PR iteration, or False for tests to only run when merged to main'
+        description: 'Set to true for stage 2 tests to be run for each commit in the PR, or False for tests to only run when merged to main'
         default: true
         required: false
         type: boolean
