@@ -155,7 +155,7 @@ jobs:
             pytest --durations=0 -m '${{ inputs.test_stage_1_conditions }}' --disable-warnings
           fi
 
-      - if: inputs.test_stage_2_should_run || github.event_name == 'push'
+      - if: (test_stage_2_should_run) && (inputs.test_stage_2_run_in_branch || github.event_name == 'push')
         name: Run Stage 2 Tests
         run: | 
           echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
