@@ -31,6 +31,13 @@ on:
         default: '1.5.1'
         required: false
         type: string
+
+      # Check SDK and package versions match
+      check_sdk_and_package_version_match:
+        description: 'Set to true to check if the SDK and main package have the same version number'
+        default: false
+        required: false
+        type: boolean
       
       # Testing arguments for two-stage tests 
       test_stage_1_should_run:
@@ -139,6 +146,18 @@ jobs:
           echo "${{ secrets.GAR_RW_PYTHON_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
           poetry self add keyrings-google-artifactregistry-auth==1.0.0
           poetry install
+
+      # ENSURE PACKAGE AND SDK HAVE THE SAME VERSION NUMBER
+      - if: inputs.check_sdk_and_package_version_match
+        name: Ensure SDK and package versions match
+        run: |
+          VERSION1=$(poetry version -s)
+          echo "${{ inputs.repository_name }}_sdk" | tr '-' '_' >> $SDK_DIRECTORY
+          VERSION2=$(cd $SDK_DIRECTORY && poetry version -s)
+          if [ "$VERSION1" != "$VERSION2" ]; then
+            echo "Package and SDK versions do not match"
+            exit 1
+          fi
 
       # FORMATTING
       - name: Run Pre-commit Hooks
