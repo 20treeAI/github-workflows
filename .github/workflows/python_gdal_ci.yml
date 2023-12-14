@@ -1,25 +1,14 @@
 name: CI pipeline for GDAL Python repositories 
 
-## Assumptions
-# 1. conda env file is called env.yml
-# 2. poetry (pyproject.toml and poetry.lock files)
-# 3. repository name = conda env name = package name
-# 4. uses pre-commit hooks
-# 5. two testing "stages": e.g. stage 1 = fast tests, stage 2 = slow tests, or stage 1 = parallel tests, stage 2 = dask tests
 
 on:
   workflow_call:
     inputs:
 
-      # Testing arguments for two-stage tests
+      # Main parameters
       repository_name:
-        description: 'Name of conda environment, python package'
+        description: 'Name of repository conda environment, python package (with dashes, e.g. risk-score)'
         required: true
-        type: string
-      gdal_version:
-        description: 'version of GDAL being used e.g. 3.6.4'
-        default: '3.6.4'
-        required: false
         type: string
       python_version:
         description: 'Python version for building lib'
@@ -39,9 +28,9 @@ on:
         required: false
         type: boolean
       
-      # Testing arguments for two-stage tests 
+      # Testing arguments for Stage 1 tests 
       test_stage_1_should_run:
-        description: 'Set to true to run the stage 1 tests as defined below'
+        description: 'Set to true to run the stage 1 tests using the parameters that follow'
         default: true
         required: false
         type: boolean
@@ -56,13 +45,14 @@ on:
         required: false
         type: string
 
+      # Testing arguments for Stage 2 tests 
       test_stage_2_should_run:
-        description: 'Set to true to run the stage 2 tests as defined below'
+        description: 'Set to true to run the stage 2 tests using the parameters that follow'
         default: false
         required: false
         type: boolean
       test_stage_2_use_pytest_xdist:
-        description: 'Set to true if pytest-xdist to run stage 2 tests in parallel (expects pytext-xdist to be installed)'
+        description: 'Set to true to use pytest-xdist to run stage 2 tests in parallel (expects pytext-xdist to be installed)'
         default: false
         required: false
         type: boolean
@@ -83,7 +73,7 @@ on:
         required: true
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
-        required: true
+        required: false
       TEST_SERVICEACCOUNT_KEY:
         description: 'Service account key with access to resources needed for running tests'
         required: true

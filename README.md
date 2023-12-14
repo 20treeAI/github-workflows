@@ -220,3 +220,57 @@ This [workflow](./.github/workflows/python_library_ci.yml) will run precommit ho
 |    TEST_SERVICEACCOUNT_KEY     | Service account credentials to run the tests           |  false   |
 
 </details>
+
+## Run CI for Python GDAL Repository
+
+This [workflow](./.github/workflows/python_gdal_ci.yml) will run precommit hooks and tests for a GDAL-based python package.
+
+[Example workflow call](./examples/python_gdal_ci.yml)
+
+<details>
+  <summary>Workflow Input Variables</summary>
+
+|       name        | description                                                                                                               |  type   | default | required |
+| :---------------: | :------------------------------------------------------------------------------------------------------------------------ | :-----: | :------ | :------: |
+|  repository_name                    | Name of the python repository and conda environment                                                     | string  | None    |   true   |
+|  python_version                     | Python version to use when running CI                                                                   | string  | 3.10.6  |  false   |
+|  poetry_version                     | Poetry version to run and build package                                                                 | string  | 1.5.1   |  false   |
+| check_sdk_and_package_version_match | Check if SDK and package versions match                                                                 | boolean | false   |  false   |
+|  test_stage_1_should_run            | Set to true to run Stage 1 test                                                                         | boolean | true    |  false   |
+|  test_stage_1_use_pytest_xdist      | Set to true if Stage 1 tests should be run in parallel using `pytest-xdist` (needs to be installed)     | boolean | false   |  false   |
+|  test_stage_1_conditions            | Pytest marker conditions to include/exclude tests for Stage 1                                           | string  | ''      |  false   |
+|  test_stage_2_should_run            | Set to true to run Stage 2 test                                                                         | boolean | false   |  false   |
+|  test_stage_2_use_pytest_xdist      | Set to true if Stage 2 tests should be run in parallel using `pytest-xdist` (needs to be installed)     | boolean | false   |  false   |
+|  test_stage_2_conditions            | Pytest marker conditions to include/exclude tests for Stage 2                                           | string  | ''      |  false   |
+|  test_stage_2_run_in_branch         | Set to true to run Stage 2 test on each PR commit. Otherwise, Stage 2 is only run on merges to `main`   | boolean | true    |  false   |
+
+#### Input Secrets
+
+|              name                | description                                            | required |
+| :------------------------------: | :----------------------------------------------------- | :------: |
+| GAR_RW_PYTHON_SERVICEACCOUNT_KEY | Service account credentials to access GAR libraries    |   true   |
+|    SSH_KEY                       | SSH key used to access private repos during the build  |  false   |
+|    TEST_SERVICEACCOUNT_KEY       | Service account credentials to run the tests           |   true   |
+
+</details>
+
+
+### Workflow Assumptions
+
+To use this workflow, it is assumed that your repository conforms to the following structure and tooling:
+
+1. Uses `poetry` (`pyproject.toml` and `poetry.lock` files) and `conda`
+2. Conda environment file is called `env.yml`
+3. The repository name = conda env name = package name 
+4. If an SDK is present, the SDK folder = the repository name with "_sdk" appended e.g. `risk_score_sdk`
+5. Uses pre-commit hooks to run linting, formatting
+6. Two testing stages which can be used in different ways
+     Example Use-Case 1:
+        Test Stage 1 runs all tests 
+        Test Stage 2 skipped
+     Example Use-Case 2:
+        Test Stage 1 runs fast tests
+        Test stage 2 runs slow tests 
+     Example Use-Case 3: 
+        Test stage 1 for parallel tests using pytext-xdist
+        Test stage 2 to run Dask tests without pytext-xdist (to avoid parallel-conflicts)
