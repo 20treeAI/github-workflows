@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    uses: 20treeAI/github-workflows/.github/workflows/python_gdal_ci.yml@main
+    with:
+      repository_name: 'my-gdal-python-repo'
+      check_sdk_and_package_version_match: true
+      test_stage_1_should_run: true
+      test_stage_1_use_pytest_xdist: true
+      test_stage_1_conditions: 'not db and not dask'
+      test_stage_2_should_run: true
+      test_stage_2_use_pytest_xdist: false
+      test_stage_2_conditions: 'not db and dask'
+    secrets:
+      REGISTRY_RW_SERVICEACCOUNT_KEY: ${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}
+      SSH_KEY: ${{ secrets.OVERSTORY_BOT_SSH_KEY }}

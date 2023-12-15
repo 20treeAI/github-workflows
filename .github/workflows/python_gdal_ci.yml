@@ -1,0 +1,175 @@
+name: CI pipeline for GDAL Python repositories 
+
+
+on:
+  workflow_call:
+    inputs:
+
+      # Main parameters
+      repository_name:
+        description: 'Name of repository conda environment, python package (with dashes, e.g. risk-score)'
+        required: true
+        type: string
+      python_version:
+        description: 'Python version for building lib'
+        default: '3.10.6'
+        required: false
+        type: string
+      poetry_version:
+        description: 'Poetry version for building lib'
+        default: '1.5.1'
+        required: false
+        type: string
+
+      # Check SDK and package versions match
+      check_sdk_and_package_version_match:
+        description: 'Set to true to check if the SDK and main package have the same version number'
+        default: false
+        required: false
+        type: boolean
+      
+      # Testing arguments for Stage 1 tests 
+      test_stage_1_should_run:
+        description: 'Set to true to run the stage 1 tests using the parameters that follow'
+        default: true
+        required: false
+        type: boolean
+      test_stage_1_use_pytest_xdist:
+        description: 'Set to true to use pytest-xdist to run stage 1 tests in parallel (expects pytext-xdist to be installed)'
+        default: false
+        required: false
+        type: boolean
+      test_stage_1_conditions:
+        description: 'Pytest marker conditions for stage 1 tests to include/exclude tests'
+        default: ''
+        required: false
+        type: string
+
+      # Testing arguments for Stage 2 tests 
+      test_stage_2_should_run:
+        description: 'Set to true to run the stage 2 tests using the parameters that follow'
+        default: false
+        required: false
+        type: boolean
+      test_stage_2_use_pytest_xdist:
+        description: 'Set to true to use pytest-xdist to run stage 2 tests in parallel (expects pytext-xdist to be installed)'
+        default: false
+        required: false
+        type: boolean
+      test_stage_2_conditions:
+        description: 'Pytest marker conditions for stage 2 tests to include/exclude tests'
+        default: 'slow'
+        required: false
+        type: string
+      test_stage_2_run_in_branch:
+        description: 'Set to true for stage 2 tests to be run for each commit in the PR, or False for tests to only run when merged to main'
+        default: true
+        required: false
+        type: boolean
+
+    secrets:
+      REGISTRY_RW_SERVICEACCOUNT_KEY:
+        description: 'Service account key to access the registry for publishing artifacts'
+        required: true
+      SSH_KEY:
+        description: 'SSH key used to access private repos during the build'
+        required: false
+      TEST_SERVICEACCOUNT_KEY:
+        description: 'Service account key with access to resources needed for running tests'
+        required: true
+
+
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud_key.json
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # NOTE: This must run before the env restore, changed LD_LIBRARY_PATH can cause OpenSSL mismatch errors
+      - name: Setup SSH Keys and known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      # CONDA
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: ${{ inputs.repository_name }}
+
+        # Save the conda environment to cache.
+        # NOTE automatically invalidates cache monthly OR on any change of the env.yml or poetry.lock files
+        # Edit this portion to adjust cache "lifetime"
+      - name: Save date for cache keys
+        run: echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV 
+      - name: Cache Conda env
+        uses: actions/cache@v3
+        id: conda-env-cache
+        with:
+          path: /usr/share/miniconda3/envs/${{ inputs.repository_name }}
+          key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
+
+        # Only install conda packages if the cache is invalidated
+      - name: Install conda packages
+        if: steps.conda-env-cache.outputs.cache-hit != 'true'
+        run: mamba env update -n ${{ inputs.repository_name }} -f env.yml
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ inputs.poetry_version }}
+
+      # POETRY INSTALL
+      - name: Install package
+        run: |
+          echo "${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+          poetry self add keyrings-google-artifactregistry-auth==1.0.0
+          poetry install
+
+      # ENSURE PACKAGE AND SDK HAVE THE SAME VERSION NUMBER
+      - if: inputs.check_sdk_and_package_version_match
+        name: Ensure SDK and package versions match
+        run: |
+          PACKAGE_VERSION=$(poetry version -s)
+          SDK_VERSION=$(cd $(echo ${{ inputs.repository_name }}"_sdk" | tr '-' '_') && poetry version -s)
+          if [ "$PACKAGE_VERSION" != "$SDK_VERSION" ]; then
+            echo "Package and SDK versions do not match"
+            exit 1
+          fi
+
+      # FORMATTING
+      - name: Run Pre-commit Hooks
+        run: pre-commit run --all
+
+      # TESTS Stage 1 and Stage 2
+      - name: Import GCS key for tests
+        run: echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
+
+      - if: inputs.test_stage_1_should_run
+        name: Run Stage 1 Tests
+        run: | 
+          if [ ${{ inputs.test_stage_1_use_pytest_xdist }} ]; then
+            pytest --durations=0 -m '${{ inputs.test_stage_1_conditions }}' -n auto --disable-warnings
+          else
+            pytest --durations=0 -m '${{ inputs.test_stage_1_conditions }}' --disable-warnings
+          fi
+
+      - if: (inputs.test_stage_2_should_run) && (inputs.test_stage_2_run_in_branch || github.event_name == 'push')
+        name: Run Stage 2 Tests
+        run: | 
+          if [ ${{ inputs.test_stage_2_use_pytest_xdist }} ]; then
+            pytest --durations=0 -m '${{ inputs.test_stage_2_conditions }}' -n auto --disable-warnings
+          else
+            pytest --durations=0 -m '${{ inputs.test_stage_2_conditions }}' --disable-warnings
+          fi
