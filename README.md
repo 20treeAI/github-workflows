@@ -246,11 +246,11 @@ This [workflow](./.github/workflows/python_gdal_ci.yml) will run precommit hooks
 
 #### Input Secrets
 
-|              name                | description                                            | required |
-| :------------------------------: | :----------------------------------------------------- | :------: |
-| GAR_RW_PYTHON_SERVICEACCOUNT_KEY | Service account credentials to access GAR libraries    |   true   |
-|    SSH_KEY                       | SSH key used to access private repos during the build  |  false   |
-|    TEST_SERVICEACCOUNT_KEY       | Service account credentials to run the tests           |   true   |
+|              name                | description                                              | required |
+| :------------------------------: | :------------------------------------------------------- | :------: |
+|  REGISTRY_RW_SERVICEACCOUNT_KEY  | Service account credentials to access registry libraries |   true   |
+|    SSH_KEY                       | SSH key used to access private repos during the build    |  false   |
+|    TEST_SERVICEACCOUNT_KEY       | Service account credentials to run the tests             |   true   |
 
 </details>
 
