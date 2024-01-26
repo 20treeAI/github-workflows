@@ -80,8 +80,8 @@ jobs:
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
       # Save the conda environment to cache.
-      # Invalidates cache monthly OR on any change of the env.yml or poetry.lock files
-      # Edit this portion to adjust cache "lifetime"
+      # Invalidates cache monthly OR on any change of the env.yml or poetry.lock files.
+      # Edit this portion to adjust cache lifetime.
       - name: Save date for cache keys
         run: echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV 
       - name: Cache Conda env
