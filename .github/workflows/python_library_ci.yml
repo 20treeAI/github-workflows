@@ -90,13 +90,13 @@ jobs:
         uses: actions/cache@v4
         id: conda-env-cache
         with:
-          path: /usr/share/miniconda3/envs/${{ inputs.repository_name }}
+          path: /usr/share/miniconda3/envs/ci-env
           key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
 
       # Only install conda packages if the cache is invalidated
       - name: Install conda packages
         if: steps.conda-env-cache.outputs.cache-hit != 'true'
-        run: mamba env update -n ${{ inputs.repository_name }} -f env.yml
+        run: mamba env update -n ci-env -f env.yml
 
       - name: Install poetry
         uses: snok/install-poetry@v1
