@@ -52,6 +52,7 @@ on:
         type: string
         default: "1.5.12"
         required: false
+        # Chart values https://github.com/dagster-io/dagster/blob/1.5.12/helm/dagster/values.yaml
 
     secrets:
       SSH_KEY:
@@ -143,35 +144,31 @@ jobs:
           timeout: 30m0s
           atomic: false
           values: |
+            global:
+              postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
+              serviceAccountName: ${{ inputs.stage_dagster_service_account_name }}
+
+            dagsterWebserver:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+
             dagsterDaemon:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
               runMonitoring:
                 enabled: true
                 startTimeoutSeconds: 600
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+
             dagit:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
-              livenessProbe:
-                httpGet:
-                  path: "/dagit_info"
-                  port: 80
-                periodSeconds: 20
-                timeoutSeconds: 3
-                successThreshold: 1
-                failureThreshold: 3
-              startupProbe:
-                enabled: true
-                httpGet:
-                  path: "/dagit_info"
-                  port: 80
-                periodSeconds: 20
-                timeoutSeconds: 3
-                successThreshold: 1
-                failureThreshold: 3
-            global:
-              postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
-              serviceAccountName: ${{ inputs.stage_dagster_service_account_name }}
+
             dagster-user-deployments:
               deployments:
                 - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
@@ -187,6 +184,11 @@ jobs:
                     cloud.google.com/gke-nodepool: core
                   labels:
                     dev-environment.${{ inputs.stage_cluster_domain }}/deploysha: "${{ github.sha }}"
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 128Mi
+            
             ingress:
               enabled: true
               annotations:
@@ -205,10 +207,16 @@ jobs:
                 tls:
                   enabled: true
                   secretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-ssl-secret"
+            
             serviceAccount:
               create: false
+
             postgresql:
               enabled: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               master:
                 annotations:
                   cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
