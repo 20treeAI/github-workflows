@@ -141,19 +141,16 @@ jobs:
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: "dagster"
           chart-version: "${{ inputs.dagster_version }}"
-          timeout: 30m0s
-          atomic: false
+          timeout: 15m0s
           values: |
             global:
               postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
               serviceAccountName: ${{ inputs.stage_dagster_service_account_name }}
-
             dagsterWebserver:
               resources:
                 requests:
                   cpu: 100m
                   memory: 128Mi
-
             dagsterDaemon:
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
@@ -164,11 +161,15 @@ jobs:
                 requests:
                   cpu: 100m
                   memory: 128Mi
-
             dagit:
+              livenessProbe: {}
+              startupProbe: {}
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               nodeSelector:
                 cloud.google.com/gke-nodepool: core
-
             dagster-user-deployments:
               deployments:
                 - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
@@ -188,7 +189,6 @@ jobs:
                     requests:
                       cpu: 100m
                       memory: 128Mi
-            
             ingress:
               enabled: true
               annotations:
@@ -207,10 +207,8 @@ jobs:
                 tls:
                   enabled: true
                   secretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-ssl-secret"
-            
             serviceAccount:
               create: false
-
             postgresql:
               enabled: true
               resources:
