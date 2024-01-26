@@ -140,6 +140,7 @@ jobs:
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: "dagster"
           chart-version: "${{ inputs.dagster_version }}"
+          timeout: 30m0s
           values: |
             dagsterDaemon:
               nodeSelector:
@@ -246,6 +247,7 @@ jobs:
           chart: "dagster/dagster"
           release: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
           namespace: "dagster"
+          timeout: 30m0s
       # this has to be done manually to clean up the postgresql PVC
       - name: "Remove dev environment Persistent Volume Claim"
         run: kubectl delete pvc -n dagster -l release=${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}
