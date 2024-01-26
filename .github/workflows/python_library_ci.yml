@@ -66,13 +66,13 @@ jobs:
           python-version: ${{ inputs.python_version }}
 
         - uses: conda-incubator/setup-miniconda@v3
-        if: inputs.conda_env_file != ''
-        with:
-          activate-environment: ci-env
-          miniforge-variant: Mambaforge
-          use-mamba: true
-          environment-file: ${{ inputs.conda_env_file }}
-
+          if: inputs.conda_env_file != ''
+          with:
+            activate-environment: ci-env
+            miniforge-variant: Mambaforge
+            use-mamba: true
+            environment-file: ${{ inputs.conda_env_file }}
+             
       - name: Setup SSH Keys and known_hosts
         if: inputs.provide_ssh_access
         run: |
@@ -80,6 +80,23 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
+
+      # Save the conda environment to cache.
+      # Invalidates cache monthly OR on any change of the env.yml or poetry.lock files
+      # Edit this portion to adjust cache "lifetime"
+      - name: Save date for cache keys
+        run: echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV 
+      - name: Cache Conda env
+        uses: actions/cache@v4
+        id: conda-env-cache
+        with:
+          path: /usr/share/miniconda3/envs/${{ inputs.repository_name }}
+          key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
+
+      # Only install conda packages if the cache is invalidated
+      - name: Install conda packages
+        if: steps.conda-env-cache.outputs.cache-hit != 'true'
+        run: mamba env update -n ${{ inputs.repository_name }} -f env.yml
 
       - name: Install poetry
         uses: snok/install-poetry@v1

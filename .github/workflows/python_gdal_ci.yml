@@ -93,7 +93,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # NOTE: This must run before the env restore, changed LD_LIBRARY_PATH can cause OpenSSL mismatch errors
       - name: Setup SSH Keys and known_hosts
         run: |
           mkdir -p ~/.ssh
@@ -106,6 +105,7 @@ jobs:
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
+          use-mamba: true
           activate-environment: ${{ inputs.repository_name }}
 
         # Save the conda environment to cache.
