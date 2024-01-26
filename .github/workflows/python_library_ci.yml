@@ -19,7 +19,7 @@ on:
         type: string
       poetry_version:
         description: 'Poetry version for building lib'
-        default: '1.5.1'
+        default: '1.7.1'
         required: false
         type: string
       working_directory:
@@ -36,6 +36,12 @@ on:
         default: false
         required: false
         type: boolean
+      use_pytest_xdist:
+        description: 'Run tests in parallel using (expects pytext-xdist to be installed)'
+        default: false
+        required: false
+        type: boolean
+
     secrets:
       REGISTRY_RW_SERVICEACCOUNT_KEY:
         description: 'Service account key to access the registry for publishing artifacts'
@@ -60,18 +66,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         if: inputs.conda_env_file == ''
         with:
           python-version: ${{ inputs.python_version }}
 
-      - uses: conda-incubator/setup-miniconda@v2
-        if: inputs.conda_env_file != ''
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: ci-env
           miniforge-variant: Mambaforge
           use-mamba: true
-          environment-file: ${{ inputs.conda_env_file }}
+          activate-environment: ci-env
 
       - name: Setup SSH Keys and known_hosts
         if: inputs.provide_ssh_access
@@ -81,15 +85,33 @@ jobs:
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
+      # Save the conda environment to cache.
+      # Invalidates cache monthly OR on any change of the env.yml or poetry.lock files.
+      # Edit this portion to adjust cache lifetime.
+      - name: Save date for cache keys
+        run: echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV 
+      - name: Cache Conda env
+        uses: actions/cache@v4
+        id: conda-env-cache
+        with:
+          path: /home/runner/miniconda3/envs/ci-env
+          key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
+
+      # Only install conda packages if the cache is invalidated
+      - name: Install conda packages
+        if: steps.conda-env-cache.outputs.cache-hit != 'true'
+        run: mamba env update -n ci-env -f env.yml
+
       - name: Install poetry
         uses: snok/install-poetry@v1
         with:
           version: '${{ inputs.poetry_version }}'
 
       - name: Install package
+        if: steps.conda-env-cache.outputs.cache-hit != 'true'
         run: |
           echo "${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          poetry self add keyrings-google-artifactregistry-auth==1.0.0
+          poetry self add keyrings-google-artifactregistry-auth
           poetry install
 
       - name: Linting
@@ -98,7 +120,12 @@ jobs:
       - name: Run tests
         run: |
           echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          poetry run pytest --disable-warnings
+          if [ ${{ inputs.use_pytest_xdist }} ]; then
+            poetry run pytest --disable-warnings --durations=0 -n auto
+          else
+            poetry run pytest --disable-warnings --durations=0
+          fi
+       
 
       - name: Publish library
         if: github.event_name == 'release'
