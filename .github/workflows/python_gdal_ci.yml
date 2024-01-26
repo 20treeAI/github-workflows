@@ -91,7 +91,7 @@ jobs:
         shell: bash -el {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # NOTE: This must run before the env restore, changed LD_LIBRARY_PATH can cause OpenSSL mismatch errors
       - name: Setup SSH Keys and known_hosts
@@ -102,7 +102,7 @@ jobs:
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
       # CONDA
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
@@ -114,7 +114,7 @@ jobs:
       - name: Save date for cache keys
         run: echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV 
       - name: Cache Conda env
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: conda-env-cache
         with:
           path: /usr/share/miniconda3/envs/${{ inputs.repository_name }}

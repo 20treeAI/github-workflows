@@ -60,12 +60,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         if: inputs.conda_env_file == ''
         with:
           python-version: ${{ inputs.python_version }}
 
-      - uses: conda-incubator/setup-miniconda@v2
+        - uses: conda-incubator/setup-miniconda@v3
         if: inputs.conda_env_file != ''
         with:
           activate-environment: ci-env
