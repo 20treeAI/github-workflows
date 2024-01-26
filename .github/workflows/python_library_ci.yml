@@ -70,7 +70,7 @@ jobs:
           miniforge-variant: Mambaforge
           use-mamba: true
           activate-environment: ci-env
-            
+
       - name: Setup SSH Keys and known_hosts
         if: inputs.provide_ssh_access
         run: |
