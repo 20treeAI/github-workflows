@@ -66,12 +66,10 @@ jobs:
           python-version: ${{ inputs.python_version }}
 
       - uses: conda-incubator/setup-miniconda@v2
-        if: inputs.conda_env_file != ''
         with:
-          activate-environment: ci-env
           miniforge-variant: Mambaforge
           use-mamba: true
-          environment-file: ${{ inputs.conda_env_file }}
+          activate-environment: ci-env
             
       - name: Setup SSH Keys and known_hosts
         if: inputs.provide_ssh_access
@@ -90,7 +88,7 @@ jobs:
         uses: actions/cache@v4
         id: conda-env-cache
         with:
-          path: /usr/share/miniconda3/envs/ci-env
+          path: /runner/home/miniconda3/envs/ci-env
           key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
 
       # Only install conda packages if the cache is invalidated
