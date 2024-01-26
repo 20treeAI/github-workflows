@@ -147,8 +147,8 @@ jobs:
               postgresqlSecretName: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}-psql-secret"
               serviceAccountName: ${{ inputs.stage_dagster_service_account_name }}
             dagsterWebserver:
-              livenessProbe: {}
-              startupProbe: {}
+              nodeSelector:
+                cloud.google.com/gke-nodepool: core
               resources:
                 requests:
                   cpu: 100m
@@ -163,15 +163,6 @@ jobs:
                 requests:
                   cpu: 100m
                   memory: 128Mi
-            dagit:
-              livenessProbe: {}
-              startupProbe: {}
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 128Mi
-              nodeSelector:
-                cloud.google.com/gke-nodepool: core
             dagster-user-deployments:
               deployments:
                 - name: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}"
