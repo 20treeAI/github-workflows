@@ -141,6 +141,7 @@ jobs:
           namespace: "dagster"
           chart-version: "${{ inputs.dagster_version }}"
           timeout: 30m0s
+          atomic: false
           values: |
             dagsterDaemon:
               nodeSelector:
