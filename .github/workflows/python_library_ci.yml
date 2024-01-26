@@ -65,7 +65,7 @@ jobs:
         with:
           python-version: ${{ inputs.python_version }}
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v2
         if: inputs.conda_env_file != ''
         with:
           activate-environment: ci-env
