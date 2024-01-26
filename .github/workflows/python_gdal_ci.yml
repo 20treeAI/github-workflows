@@ -17,7 +17,7 @@ on:
         type: string
       poetry_version:
         description: 'Poetry version for building lib'
-        default: '1.5.1'
+        default: '1.7.1'
         required: false
         type: string
 
@@ -134,7 +134,7 @@ jobs:
       - name: Install package
         run: |
           echo "${{ secrets.REGISTRY_RW_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          poetry self add keyrings-google-artifactregistry-auth==1.0.0
+          poetry self add keyrings-google-artifactregistry-auth
           poetry install
 
       # ENSURE PACKAGE AND SDK HAVE THE SAME VERSION NUMBER
