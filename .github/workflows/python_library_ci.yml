@@ -65,14 +65,14 @@ jobs:
         with:
           python-version: ${{ inputs.python_version }}
 
-        - uses: conda-incubator/setup-miniconda@v3
-          if: inputs.conda_env_file != ''
-          with:
-            activate-environment: ci-env
-            miniforge-variant: Mambaforge
-            use-mamba: true
-            environment-file: ${{ inputs.conda_env_file }}
-             
+      - uses: conda-incubator/setup-miniconda@v3
+        if: inputs.conda_env_file != ''
+        with:
+          activate-environment: ci-env
+          miniforge-variant: Mambaforge
+          use-mamba: true
+          environment-file: ${{ inputs.conda_env_file }}
+            
       - name: Setup SSH Keys and known_hosts
         if: inputs.provide_ssh_access
         run: |
