@@ -88,7 +88,7 @@ jobs:
         uses: actions/cache@v4
         id: conda-env-cache
         with:
-          path: /runner/home/miniconda3/envs/ci-env
+          path: /home/runner/miniconda3/envs/ci-env
           key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
 
       # Only install conda packages if the cache is invalidated
