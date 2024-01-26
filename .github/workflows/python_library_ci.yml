@@ -36,6 +36,12 @@ on:
         default: false
         required: false
         type: boolean
+      use_pytest_xdist:
+        description: 'Run tests in parallel using (expects pytext-xdist to be installed)'
+        default: false
+        required: false
+        type: boolean
+
     secrets:
       REGISTRY_RW_SERVICEACCOUNT_KEY:
         description: 'Service account key to access the registry for publishing artifacts'
@@ -114,7 +120,12 @@ jobs:
       - name: Run tests
         run: |
           echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          poetry run pytest --disable-warnings --durations=0
+          if [ ${{ inputs.use_pytest_xdist }} ]; then
+            poetry run pytest --disable-warnings --durations=0 -n auto
+          else
+            poetry run pytest --disable-warnings --durations=0
+          fi
+       
 
       - name: Publish library
         if: github.event_name == 'release'
