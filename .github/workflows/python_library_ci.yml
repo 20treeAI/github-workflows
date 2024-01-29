@@ -68,6 +68,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
+        if: inputs.conda_env_file == ''
         with:
           python-version: ${{ inputs.python_version }}
 
@@ -97,7 +98,7 @@ jobs:
           path: /home/runner/miniconda3/envs/ci-env
           key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
 
-      # Only install conda packages if env.yml exists and cache is invalidated
+      # Only install conda packages if the cache is invalidated
       - name: Install conda packages
         if: steps.conda-env-cache.outputs.cache-hit != 'true'
         run:  mamba env update -n ci-env -f ${{ inputs.conda_env_file }}
