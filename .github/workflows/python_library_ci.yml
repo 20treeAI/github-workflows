@@ -103,7 +103,7 @@ jobs:
       # Only install conda packages if the cache is invalidated
       - name: Install conda packages
         if: inputs.conda_env_file != '' && steps.conda-env-cache.outputs.cache-hit != 'true'
-        run: mamba env update -n ci-env -f env.yml
+        run: mamba env update -n ci-env -f ${{ inputs.conda_env_file }}
 
       - name: Install poetry
         uses: snok/install-poetry@v1
