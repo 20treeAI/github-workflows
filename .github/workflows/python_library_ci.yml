@@ -123,7 +123,7 @@ jobs:
       - name: Run tests
         run: |
           echo "${{ secrets.TEST_SERVICEACCOUNT_KEY }}" | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
-          if [ ${{ inputs.use_pytest_xdist }} ]; then
+          if [ ${{ inputs.use_pytest_xdist }} != "false" ]; then
             poetry run pytest --disable-warnings --durations=0 -n auto
           else
             poetry run pytest --disable-warnings --durations=0
