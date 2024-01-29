@@ -29,6 +29,7 @@ on:
         type: string
       conda_env_file:
         description: 'If conda is used, the location of the conda environment file'
+        default: 'env.yml'
         required: false
         type: string
       provide_ssh_access:
@@ -97,9 +98,9 @@ jobs:
           path: /home/runner/miniconda3/envs/ci-env
           key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
 
-      # Only install conda packages if the cache is invalidated
+      # Only install conda packages if env.yml exists and cache is invalidated
       - name: Install conda packages
-        if: steps.conda-env-cache.outputs.cache-hit != 'true'
+        if: hashFiles(inputs.conda_env_file) != '' && steps.conda-env-cache.outputs.cache-hit != 'true'
         run: mamba env update -n ci-env -f env.yml
 
       - name: Install poetry
