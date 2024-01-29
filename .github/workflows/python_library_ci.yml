@@ -68,12 +68,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
-        if: inputs.conda_env_file == ''
         with:
           python-version: ${{ inputs.python_version }}
 
       - uses: conda-incubator/setup-miniconda@v3
-        if: inputs.conda_env_file != ''
         with:
           miniforge-variant: Mambaforge
           use-mamba: true
@@ -95,14 +93,13 @@ jobs:
       - name: Cache Conda env
         uses: actions/cache@v4
         id: conda-env-cache
-        if: inputs.conda_env_file != ''
         with:
           path: /home/runner/miniconda3/envs/ci-env
           key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
 
       # Only install conda packages if env.yml exists and cache is invalidated
       - name: Install conda packages
-        if: inputs.conda_env_file != '' && steps.conda-env-cache.outputs.cache-hit != 'true'
+        if: steps.conda-env-cache.outputs.cache-hit != 'true'
         run:  mamba env update -n ci-env -f ${{ inputs.conda_env_file }}
 
       - name: Install poetry
