@@ -85,6 +85,7 @@ jobs:
           path: ${{ inputs.artifacts_path }}
 
       - name: Set up Docker Buildx
+        id: buildx-setup
         uses: docker/setup-buildx-action@v2.10.0
         with:
           driver: ${{ inputs.docker_buildx_driver }}
@@ -100,6 +101,12 @@ jobs:
       - name: Use glcoud CLI to configure-docker auth
         run: gcloud auth configure-docker eu.gcr.io,europe-west4-docker.pkg.dev
 
+      - name: print driver
+        run: |
+         echo ${{ inputs.docker_buildx_driver }}
+         echo ${{ steps.buildx-setup.driver }}
+         echo ${{ steps.buildx-setup.driver == 'docker-container' && 'type=gha,mode=max' || 's' }}
+
       - if: ${{ inputs.test_dagster }}
         name: Build docker image
         uses: docker/build-push-action@v4.1.1
@@ -114,7 +121,7 @@ jobs:
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
           cache-from: type=gha
-          cache-to: ${{ inputs.docker_buildx_driver == 'docker-container' && 'type=gha,mode=max' || '' }}
+          cache-to: ${{ steps.buildx-setup.driver == 'docker-container' && 'type=gha,mode=max' || 's' }}
 
       - if: ${{ inputs.test_dagster }}
         name: Find repository.py file
