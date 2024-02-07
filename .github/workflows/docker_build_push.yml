@@ -65,7 +65,7 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
-      - name: Clear some space  # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+      - name: Clear some space  # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh 
         if: ${{ inputs.clear_space }}
         run: |
           df -h
@@ -73,10 +73,10 @@ jobs:
           # sudo apt remove -y '^llvm-.*'
           # sudo apt remove -y '^mongodb-.*'
           # sudo apt remove -y '^mysql-.*'
-          sudo apt remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
-          sudo apt autoremove -y
-          sudo apt clean
-          df -h
+          # sudo apt remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+          # sudo apt autoremove -y
+          # sudo apt clean
+          # df -h
           # echo "Removing large directories"
           # sudo rm -rf /usr/share/dotnet/
           # sudo rm -rf /usr/local/graalvm/
@@ -85,6 +85,8 @@ jobs:
           # sudo rm -rf /usr/local/share/chromium
           # sudo rm -rf /usr/local/lib/android
           # sudo rm -rf /usr/local/lib/node_modules
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           df -h
 
       - name: Checkout
