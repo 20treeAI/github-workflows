@@ -18,6 +18,11 @@ on:
         required: false
         default: "docker-container"
         type: string
+      clear_space:
+        description: 'Whether to clear some space on the runner, e.g. for large (CUDA) builds'
+        required: false
+        default: false
+        type: boolean
       gcp_project:
         description: "GCP project where GKE/GAR are located for storing built Docker images"
         required: true
@@ -70,13 +75,14 @@ jobs:
     # only run on synchronize PR event, meaning something has been pushed to the PR branch
     if: github.event_name == 'push' || contains(fromJSON('["opened", "synchronize", "reopened", "push"]'), github.event.action) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'dev-env')
     # query our reusable docker build and push workflow
-    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@fix/docker_caching
     with:
       image_name: ${{ inputs.image_name }}
       branch: ${{ inputs.branch }}
       gcp_project: ${{ inputs.gcp_project }}
       test_dagster: true
       docker_buildx_driver: ${{ inputs.docker_buildx_driver }}
+      clear_space: ${{ inputs.clear_space  }}
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
