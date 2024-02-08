@@ -150,6 +150,7 @@ jobs:
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
           tags: test-image
+          ssh: default
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
