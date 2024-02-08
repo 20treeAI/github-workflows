@@ -94,7 +94,7 @@ jobs:
 
       # add a summary with the ci status
       - name: Post Plan Step Summaries
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         if: always()
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
