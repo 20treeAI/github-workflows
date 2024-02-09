@@ -60,7 +60,7 @@ on:
 jobs:
   run-docker-workflow:
     # query our reusable docker build and push workflow
-    uses: 20treeAI/github-workflows/.github/workflows/docker_build_push.yml@main
+    uses: ./.github/workflows/docker_build_push.yml
     with:
       image_name: ${{ inputs.image_name }}
       branch: ${{ inputs.branch }}
