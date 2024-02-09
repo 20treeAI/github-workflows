@@ -41,6 +41,11 @@ on:
         required: false
         default: 'docker-container'
         type: string
+      clear_space:
+        description: 'Whether to clear some space on the runner, e.g. for large (CUDA) builds'
+        required: false
+        default: false
+        type: boolean
 
     secrets:
       SSH_KEY:
@@ -60,6 +65,30 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
+      - name: Clear some space  # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh 
+        if: ${{ inputs.clear_space }}
+        run: |
+          df -h
+          # sudo apt remove -y '^dotnet-.*'
+          # sudo apt remove -y '^llvm-.*'
+          # sudo apt remove -y '^mongodb-.*'
+          # sudo apt remove -y '^mysql-.*'
+          # sudo apt remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+          # sudo apt autoremove -y
+          # sudo apt clean
+          # df -h
+          # echo "Removing large directories"
+          # sudo rm -rf /usr/share/dotnet/
+          # sudo rm -rf /usr/local/graalvm/
+          # sudo rm -rf /usr/local/.ghcup/
+          # sudo rm -rf /usr/local/share/powershell
+          # sudo rm -rf /usr/local/share/chromium
+          # sudo rm -rf /usr/local/lib/android
+          # sudo rm -rf /usr/local/lib/node_modules
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -84,8 +113,19 @@ jobs:
           name: ${{ inputs.artifacts_object_name }}
           path: ${{ inputs.artifacts_path }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2.10.0
+      - name: Set up docker  # latest docker version to make driver: docker work with gha cache
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          version: latest
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up Docker Buildx 
+        uses: docker/setup-buildx-action@v3
         with:
           driver: ${{ inputs.docker_buildx_driver }}
 
@@ -102,19 +142,20 @@ jobs:
 
       - if: ${{ inputs.test_dagster }}
         name: Build docker image
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v5
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
           context: .
-          load: true
+          load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
+          push: false
           tags: test-image
           ssh: default
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
           cache-from: type=gha
-          cache-to: ${{ inputs.docker_buildx_driver == 'docker-container' && 'type=gha,mode=max' || '' }}
+          cache-to: type=gha,mode=max
 
       - if: ${{ inputs.test_dagster }}
         name: Find repository.py file
@@ -134,7 +175,7 @@ jobs:
       - name: Push docker image
         # if either a tag isn't provided, or if the run is scheduled (using automatic docker re-builds) for security
         if: ${{ !startsWith(github.ref, 'refs/tags/') || github.event_name == 'scheduled' }}
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v5
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
