@@ -62,6 +62,7 @@ jobs:
   docker-build-test-push:
     env:
       IMAGE_NAME: europe-west4-docker.pkg.dev/${{ inputs.gcp_project }}/image/${{ inputs.image_name }}
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
@@ -94,12 +95,10 @@ jobs:
 
       - name: Setup SSH Keys and known_hosts
         shell: bash -l {0}
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-agent -a ${{ env.SSH_AUTH_SOCK }}> /dev/null
           ssh-add - <<< "${{ secrets.SSH_KEY }}"
 
       - name: Import build key
@@ -143,14 +142,12 @@ jobs:
       - if: ${{ inputs.test_dagster }}
         name: Build docker image
         uses: docker/build-push-action@v5
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
           context: .
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
           tags: test-image
-          ssh: default
+          ssh: ${{ env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
@@ -176,12 +173,10 @@ jobs:
         # if either a tag isn't provided, or if the run is scheduled (using automatic docker re-builds) for security
         if: ${{ !startsWith(github.ref, 'refs/tags/') || github.event_name == 'scheduled' }}
         uses: docker/build-push-action@v5
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         with:
           context: .
           push: ${{ !inputs.skip_image_push }}
-          ssh: default
+          ssh: ${{ env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           tags: |
