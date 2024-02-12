@@ -147,7 +147,7 @@ jobs:
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          ssh: ${{ env.SSH_AUTH_SOCK }}
+          ssh: ${{ env.SSH_AUTH_SOCK }},default
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
@@ -176,7 +176,7 @@ jobs:
         with:
           context: .
           push: ${{ !inputs.skip_image_push }}
-          ssh: ${{ env.SSH_AUTH_SOCK }}
+          ssh: ${{ env.SSH_AUTH_SOCK }},default
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           tags: |
