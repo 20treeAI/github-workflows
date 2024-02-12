@@ -123,7 +123,7 @@ jobs:
         id: conda-env-cache
         with:
           path: /home/runner/miniconda3/envs/ci-env
-          key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}
+          key: conda-${{ env.MONTH }}-${{ hashFiles('env.yml') }}-${{ hashFiles('poetry.lock') }}-${{ hashFiles('pyproject.toml') }}
 
         # Only install conda packages if the cache is invalidated
       - name: Install conda packages
