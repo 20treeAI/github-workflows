@@ -63,6 +63,7 @@ jobs:
     env:
       IMAGE_NAME: europe-west4-docker.pkg.dev/${{ inputs.gcp_project }}/image/${{ inputs.image_name }}
       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      SSH_DEFAULT: default
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
@@ -147,7 +148,7 @@ jobs:
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && default || env.SSH_AUTH_SOCK }}
+          ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && env.SSH_DEFAULT || env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
@@ -176,7 +177,7 @@ jobs:
         with:
           context: .
           push: ${{ !inputs.skip_image_push }}
-          ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && default || env.SSH_AUTH_SOCK }}
+          ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && env.SSH_DEFAULT || env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           tags: |
