@@ -146,7 +146,7 @@ jobs:
           context: .
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
-          tags: test-image
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           ssh: ${{ env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
@@ -162,7 +162,7 @@ jobs:
       - if: ${{ inputs.test_dagster }}
         name: Test Dagster Docker image
         run: |
-          docker run -p 8080:8080 -d --env 'TZ=Europe/Brussels' --name test_container test-image \
+          docker run -p 8080:8080 -d --env 'TZ=Europe/Brussels' --name test_container ${{ env.IMAGE_NAME }}:${{ github.sha }} \
               dagster api grpc -h 0.0.0.0 -p 8080 --python-file "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
           sleep 5
           wget -O/tmp/grpc_health_probe -q https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.11/grpc_health_probe-linux-amd64
