@@ -63,6 +63,7 @@ jobs:
     env:
       IMAGE_NAME: europe-west4-docker.pkg.dev/${{ inputs.gcp_project }}/image/${{ inputs.image_name }}
       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      SSH_DEFAULT: default
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
@@ -146,8 +147,8 @@ jobs:
           context: .
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
-          tags: test-image
-          ssh: ${{ env.SSH_AUTH_SOCK }}
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && env.SSH_DEFAULT || env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           provenance: false
@@ -162,7 +163,7 @@ jobs:
       - if: ${{ inputs.test_dagster }}
         name: Test Dagster Docker image
         run: |
-          docker run -p 8080:8080 -d --env 'TZ=Europe/Brussels' --name test_container test-image \
+          docker run -p 8080:8080 -d --env 'TZ=Europe/Brussels' --name test_container ${{ env.IMAGE_NAME }}:${{ github.sha }} \
               dagster api grpc -h 0.0.0.0 -p 8080 --python-file "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
           sleep 5
           wget -O/tmp/grpc_health_probe -q https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.11/grpc_health_probe-linux-amd64
@@ -176,7 +177,7 @@ jobs:
         with:
           context: .
           push: ${{ !inputs.skip_image_push }}
-          ssh: ${{ env.SSH_AUTH_SOCK }}
+          ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && env.SSH_DEFAULT || env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
           secret-files: BUILD_KEY=/tmp/build_key.json
           tags: |
