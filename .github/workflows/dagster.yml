@@ -200,7 +200,7 @@ jobs:
                   auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
                   auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
                   auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
-              dagit:
+              dagsterWebserver:
                 host: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
                 path: "/"
                 tls:
