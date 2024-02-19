@@ -180,6 +180,9 @@ jobs:
                     - "--python-file"
                     - "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
                   port: 3030
+                  env:
+                    DAGSTER_URL: "${{ format('https://{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
+                    DAGSTER_ENV: dev-env
                   nodeSelector:
                     cloud.google.com/gke-nodepool: core
                   labels:
@@ -188,6 +191,12 @@ jobs:
                     requests:
                       cpu: 100m
                       memory: 128Mi
+            runLauncher:
+              config:
+                k8sRunLauncher:
+                  envVars:
+                    - "DAGSTER_URL=${{ format('https://{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
+                    - "DAGSTER_ENV=dev-env"
             ingress:
               enabled: true
               annotations:
@@ -200,7 +209,7 @@ jobs:
                   auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
                   auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
                   auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
-              dagit:
+              dagsterWebserver:
                 host: "${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
                 path: "/"
                 tls:
