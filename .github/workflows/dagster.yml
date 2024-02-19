@@ -195,8 +195,8 @@ jobs:
               config:
                 k8sRunLauncher:
                   envVars:
-                    DAGSTER_URL: "${{ format('https://{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
-                    DAGSTER_ENV: dev-env
+                    - "DAGSTER_URL=${{ format('https://{0}-pr-{1}', inputs.image_name, github.event.number) }}.${{ inputs.stage_cluster_domain }}"
+                    - "DAGSTER_ENV=dev-env"
             ingress:
               enabled: true
               annotations:
