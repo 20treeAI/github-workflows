@@ -176,7 +176,7 @@ jobs:
                     repository: ${{ format('europe-west4-docker.pkg.dev/{0}/image/{1}', inputs.gcp_project, inputs.image_name) }}
                     tag: ${{ format('pr-{0}', github.event.number) }}
                     pullPolicy: Always
-                  dagsterApiGrpcArgs:
+                  codeServerArgs:
                     - "--python-file"
                     - "/dagster/${{ steps.find_repo_file.outputs.REPOSITORY_PY_LOCATION }}"
                   port: 3030
