@@ -114,7 +114,7 @@ jobs:
           kubectl rollout status deployment -n dagster dagster-dagster-user-deployments-${{ inputs.image_name }} -w --timeout=10m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=${{ inputs.image_name }} && exit 1 )
 
   deploy-dev-env-to-gke:
-    if: github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'dev-env'
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dev-env')
     runs-on: ubuntu-latest
     needs: run-docker-workflow
     steps:
@@ -133,11 +133,22 @@ jobs:
           cluster_name: ${{ inputs.stage_cluster_name }}
           location: ${{ inputs.gcp_location }}
 
+      - name: Update dev-env
+        if: github.event.action != 'labeled'
+        env:
+          DEPLOYMENT_NAME: ${{ format('{0}-pr-{1}-dagster-user-deployments-{0}-pr-{1}', inputs.image_name, github.event.number) }}
+          DEPLOYMENT_LABEL: ${{ format('{0}-pr-{1}', inputs.image_name, github.event.number) }}
+        run: |
+          kubectl rollout restart deployment -n dagster $DEPLOYMENT_NAME
+          kubectl rollout status deployment -n dagster $DEPLOYMENT_NAME -w --timeout=10m && echo "Deployment completed" || ( kubectl logs -n dagster -l deployment=$DEPLOYMENT_LABEL && exit 1 )
+
       - name: Find repository.py file for helm deployment
+        if: github.event.action == 'labeled' && github.event.label.name == 'dev-env'
         id: find_repo_file
         run: echo "REPOSITORY_PY_LOCATION=$(find . -maxdepth 2 -name repository.py)" >> $GITHUB_OUTPUT
 
       - name: Install dagster helm chart for developer environment
+        if: github.event.action == 'labeled' && github.event.label.name == 'dev-env'
         uses: vimeda/helm@v1.7.0
         with:
           helm: helm3
