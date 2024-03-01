@@ -49,7 +49,7 @@ on:
         description: 'clear space on runner for docker build'
         default: false
         required: false
-        type: bool
+        type: boolean
 
 
     secrets:
@@ -73,7 +73,7 @@ jobs:
       gcp_project: ${{ inputs.gcp_project }}
       test_dagster: true
       docker_buildx_driver: ${{ inputs.docker_buildx_driver }}
-      clear_space: $(( inouts.docker_clear_space }}
+      clear_space: $(( inputs.docker_clear_space }}
     secrets:
       SSH_KEY: ${{ secrets.SSH_KEY }}
       GCR_RW_SERVICEACCOUNT_KEY: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
