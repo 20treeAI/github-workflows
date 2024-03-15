@@ -46,7 +46,7 @@ on:
         required: false
         default: false
         type: boolean
-      context:
+      docker_build_context:
         description: "Custom context. Used for repositories that contain multiple buildable services."
         required: false
         default: "."
@@ -148,7 +148,7 @@ jobs:
         name: Build docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ inputs.context }}
+          context: ${{ inputs.docker_build_context }}
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
