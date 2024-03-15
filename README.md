@@ -78,6 +78,7 @@ This [workflow](./.github/workflows/docker_build_push.yml) will build and push a
 | artifacts_path        | Path to use for the artifacts object                                          | string  | `build/`         |  false   |
 | test_dagster          | whether or not to test docker image for dagster compatibility                 | boolean | false            |  false   |
 | skip_image_push       | whether to skip image push (so that you can test image build without pushing) | boolean | false            |  false   |
+| docker_build_context       | custom build context (used if there are multiple buildable services in one repository) | string | false            |  '.'   |
 
 #### Input Secrets
 

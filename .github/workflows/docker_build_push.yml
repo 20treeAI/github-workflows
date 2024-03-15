@@ -46,7 +46,11 @@ on:
         required: false
         default: false
         type: boolean
-
+      docker_build_context:
+        description: "Custom context. Used for repositories that contain multiple buildable services."
+        required: false
+        default: "."
+        type: string
     secrets:
       SSH_KEY:
         description: 'SSH key used to access private repos during the build'
@@ -144,7 +148,7 @@ jobs:
         name: Build docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ inputs.docker_build_context }}
           load: ${{ inputs.docker_buildx_driver == 'docker-container' && true || false }}
           push: false
           tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
