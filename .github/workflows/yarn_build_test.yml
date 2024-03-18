@@ -61,5 +61,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
-          path: build/
+          path: ${{ format('{0}/{1}', inputs.package_dir, 'build/')}}
           retention-days: 1
