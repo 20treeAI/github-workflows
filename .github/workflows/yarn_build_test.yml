@@ -39,13 +39,13 @@ jobs:
       - name: Install dependencies
         uses: borales/actions-yarn@v4.2.0
         with:
-          path: ${{ inputs.package_dir }}
+          dir: ${{ inputs.package_dir }}
           cmd: install # will run `yarn install` command
 
       - name: Build application
         uses: borales/actions-yarn@v4.2.0
         with:
-          path: ${{ inputs.package_dir }}
+          dir: ${{ inputs.package_dir }}
           cmd: build # will run `yarn build` command
         env: 
           REACT_APP_MAPBOX_TOKEN_STAGE: ${{ secrets.REACT_APP_MAPBOX_TOKEN_STAGE }}
@@ -54,7 +54,7 @@ jobs:
       - name: Test application
         uses: borales/actions-yarn@v4.2.0
         with:
-          path: ${{ inputs.package_dir }}
+          dir: ${{ inputs.package_dir }}
           cmd: test # will run `yarn test` command
 
       - name: Upload artifacts
