@@ -3,6 +3,12 @@ name: yarn - build and test
 # https://docs.github.com/en/actions/using-workflows/reusing-workflows#creating-a-reusable-workflow
 on:
   workflow_call:
+    inputs:
+      package_dir:
+        description: 'Path to the directory containing the app. Defaults to .'
+        default: '.'
+        required: false
+        type: string
     secrets:
       REACT_APP_MAPBOX_TOKEN_STAGE:
         description: 'staging mapbox token to be passed to the yarn build'
@@ -33,11 +39,13 @@ jobs:
       - name: Install dependencies
         uses: borales/actions-yarn@v4.2.0
         with:
+          dir: ${{ inputs.package_dir }}
           cmd: install # will run `yarn install` command
 
       - name: Build application
         uses: borales/actions-yarn@v4.2.0
         with:
+          dir: ${{ inputs.package_dir }}
           cmd: build # will run `yarn build` command
         env: 
           REACT_APP_MAPBOX_TOKEN_STAGE: ${{ secrets.REACT_APP_MAPBOX_TOKEN_STAGE }}
@@ -46,11 +54,12 @@ jobs:
       - name: Test application
         uses: borales/actions-yarn@v4.2.0
         with:
+          dir: ${{ inputs.package_dir }}
           cmd: test # will run `yarn test` command
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
-          path: build/
+          path: ${{ format('{0}/{1}', inputs.package_dir, 'build/')}}
           retention-days: 1

@@ -179,7 +179,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/') || github.event_name == 'scheduled' }}
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ inputs.docker_build_context }}
           push: ${{ !inputs.skip_image_push }}
           ssh: ${{ inputs.docker_buildx_driver == 'docker-container' && env.SSH_DEFAULT || env.SSH_AUTH_SOCK }}
           build-args: "GIT_COMMIT=${{ github.sha }}"
