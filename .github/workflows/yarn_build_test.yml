@@ -5,8 +5,8 @@ on:
   workflow_call:
     inputs:
       package_dir:
-        description: 'Path to the directory containing the app. Defaults to /'
-        default: '/'
+        description: 'Path to the directory containing the app. Defaults to .'
+        default: '.'
         required: false
         type: string
     secrets:
