@@ -14,6 +14,9 @@ jobs:
   # builds and tests the app with yarn
   yarn_build_test:
     uses: 20treeAI/github-workflows/.github/workflows/yarn_build_test.yml@main
+    with:
+      # optional, if your js app isn't in at the top level of your repo
+      package_dir: ./client
     secrets:
       # this one is optional, but must be created ahead of time in the repo
       REACT_APP_MAPBOX_TOKEN_STAGE: ${{ secrets.REACT_APP_MAPBOX_TOKEN_STAGE }}
