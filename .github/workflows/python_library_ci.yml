@@ -59,6 +59,7 @@ jobs:
     env:
       GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud_key.json
       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      DAGSTER_ENV: test
     defaults:
       run:
         shell: bash -el {0}
