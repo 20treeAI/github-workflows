@@ -58,7 +58,7 @@ jobs:
           cmd: test # will run `yarn test` command
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: ${{ format('{0}/{1}', inputs.package_dir, 'build/')}}
