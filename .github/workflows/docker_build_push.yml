@@ -139,7 +139,7 @@ jobs:
           credentials_json: ${{ secrets.GCR_RW_SERVICEACCOUNT_KEY }}
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v1'
+        uses: 'google-github-actions/setup-gcloud@v2'
 
       - name: Use glcoud CLI to configure-docker auth
         run: gcloud auth configure-docker eu.gcr.io,europe-west4-docker.pkg.dev
