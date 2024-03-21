@@ -84,7 +84,7 @@ jobs:
       # this is optional
       - name: Create Sentry release
         if: ${{ inputs.sentry_release }}
-        uses: getsentry/action-release@v1.4.1
+        uses: getsentry/action-release@v1.7.0
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
